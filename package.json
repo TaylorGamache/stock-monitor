@@ -1,0 +1,13 @@
+{
+  "name": "weather-monitor",
+  "description": "weather trigger",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.12.4",
+    "request": "^2.60.0"
+  }
+}
