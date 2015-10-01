@@ -2,35 +2,58 @@ var port = (process.env.VCAP_APP_PORT || 3000);
 var host = (process.env.VCAP_APP_HOST || 'localhost');
 var express = require('express');
 var request = require('request');
+var Cloudant = require('cloudant');
+var http = require('http');
+require('dotenv').load();
 
 var app = express();
-app.use(express.static(__dirname + '/public'));
 
-app.get('/', function(req, res) {
-    res.send("Welcome to Weather-Monitoring Server!");
-});
+var me = 'lukebelliveau'
+var password = process.env.cloudant_password;
 
-request({
-        url: 'https://482ce492-5318-4aa3-86fd-27cabcf1aac0-bluemix.cloudant.com/test/_all_docs?limit=100',
-        method: 'POST',
-        
-        form: {
-            "_id": "apple",
-            "item": "Malus domestica",
-            "prices": {
-                "Fresh Mart": 1.59,
-                "Price Max": 5.99,
-                "Apples Express": 0.79
-            }
-        }
-}, function(error, response, body){
-        if(error){
-            console.log(error);
-        }else{
-            console.log(response.statusCode, body);
-        }
-});
+var cloudant = Cloudant({account:me, password:password});
+var time = "";
+var weather = "";
+var weatherDescription = "";
+var total = "";
+var location = "";
 
+function timeRequest(){
+request("http://api.geonames.org/timezoneJSON?lat=41.83&lng=-72.256&username=demo", function(error, response, body){
+	if (!error && response.statusCode == 200){
+		var bodyParse = JSON.parse(body);
+		time = bodyParse.time;
+		console.log("time: " + time);
 
+	}else{
+		console.log(response);
+		throw error;
+	}
+})
+
+request("http://api.openweathermap.org/data/2.5/weather?q=Storrs,ct", function(error, response, body){
+	if (!error && response.statusCode == 200){
+		var bodyParse = JSON.parse(body);
+		weather = bodyParse.weather[0].main;
+		weatherDescription = bodyParse.weather[0].description;
+		location = bodyParse.name;
+	}else{
+		console.log(response);
+		throw error;
+	}
+})
+
+};
+
+var myVar = setInterval(timeRequest, 10000);
+timeRequest();
+
+app.get('/', function(req, res){
+	total = location + ":\n" +
+		"Time: " + time + "\n" +
+		"Weather: " + weather + "\n" +
+		"Details: " + weatherDescription;
+	res.send(total);
+})
 
 app.listen(port);
