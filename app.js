@@ -8,10 +8,6 @@ require('dotenv').load();
 
 var app = express();
 
-var me = 'lukebelliveau'
-var password = process.env.cloudant_password;
-
-var cloudant = Cloudant({account:me, password:password});
 var time = "";
 var weather = "";
 var weatherDescription = "";
