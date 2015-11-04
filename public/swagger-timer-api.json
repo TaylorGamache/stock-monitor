@@ -1,0 +1,164 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Date & Time Monitor API",
+        "description": "Date and Time Monitoring Service",
+        "version": "1.0.0"
+    },
+    "host": "date-time-monitor-stage.mybluemix.net",
+    "schemes": [
+        "https"
+    ],
+    "basePath": "/api/v1",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/timers": {
+            "post": {
+              "summary": "Add/Update a timer",
+              "description": "This endpoint is used to add a timer for Date & Time monitoring service",
+                "parameters": [
+                    {
+                        "name": "timer",
+                        "in": "body",
+                        "description": "Timer JSON to be created",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Timer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Timer"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "$ref": "#/definitions/Success"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/timers/:recipeid": {
+            "delete": {
+                "summary": "Delete a timer",
+                "description": "This endpoint deletes a timer matching the recipeID",
+                "parameters": [
+                    {
+                        "name": "recipeID",
+                        "in": "path",
+                        "description": "Unique identifier of a recipe/timer",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Timer"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "$ref": "#/definitions/Success"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Timer": {
+            "properties": {
+                "recipeID": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific recipe/timer"
+                },
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when scheduled time is up"
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/Trigger"
+                }
+            }
+        },
+        "Trigger": {
+            "properties": {
+                "repeat": {
+                    "type": "integer",
+                    "description": "Type of trigger"
+                },
+                "hour": {
+                    "type": "integer",
+                    "description": "Type of trigger (0 to 23)"
+                },
+                "min": {
+                    "type": "integer",
+                    "description": "Type of trigger (0 to 59)"
+                },
+                "interval": {
+                    "type": "integer",
+                    "description": "Type of trigger"
+                },
+                "days": {
+                    "type": "integer",
+                    "description": "Type of trigger (0 to 6 - 0 is Sunday)"
+                },
+                "date": {
+                    "type": "integer",
+                    "description": "Type of trigger (1 to 31)"
+                },
+                "month": {
+                    "type": "integer",
+                    "description": "Type of trigger (1 to 12)"
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "Type of trigger (America/New_York)"
+                }
+            }
+        },
+        "Success": {
+            "properties": {
+                "success": {
+                    "type": "boolean",
+                    "description": "Whether the request was successful or not"
+                },
+                "msg": {
+                    "type": "string",
+                    "description": "Success or error message"
+                },
+                "timer": {
+                    "description": "Timer object returned",
+                    "$ref": "#/definitions/Timer"
+                }
+            }
+        },
+        "Error": {
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "msg": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
