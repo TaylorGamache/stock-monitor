@@ -14,10 +14,10 @@
         "application/json"
     ],
     "paths": {
-        "/timers": {
+        "/timerss": {
             "post": {
               "summary": "Add/Update a timer",
-              "description": "This endpoint is used to add a timer for Date & Time monitoring service",
+              "description": "This endpoint is used to add a timers for Date & Time monitoring service",
                 "parameters": [
                     {
                         "name": "timer",
@@ -48,7 +48,7 @@
                 }
             }
         },
-        "/timers/:recipeid": {
+        "/timers/:recipeidd": {
             "delete": {
                 "summary": "Delete a timer",
                 "description": "This endpoint deletes a timer matching the recipeID",

@@ -24,6 +24,7 @@ app.use(bodyParser.json());
 
 app.get('/', function(req, res){
 	res.send("Hello world!");
+	watchTrigger();
 })
 
 app.get('/hello', function(req, res){
@@ -67,6 +68,10 @@ app.post('/recipes', function(req, res){
 
 
 })
+
+function watchTrigger(){
+	console.log("Hello");
+}
 
 
 
