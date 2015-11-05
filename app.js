@@ -39,9 +39,10 @@ app.post('/recipes', function(req, res){
 	1.) Store recipe in DB and return response
 	2.) start watchForTemperatureHelper
 	*/
-
 	var request = req.body;
+	console.log("printing request body:");
 	console.log(request.recipe);
+	res.send("insert response JSON here");
 	
 })
 

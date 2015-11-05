@@ -1,0 +1,24 @@
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"name": "name","trigger": {"trig_type": "trigtType","trig_opts": {"email":"trigEmail","opt_type": "trigType","rss_url": "rssUrl","rss_last_date_published": "rssLastPub"}},"action": {"act_type":"actType","act_opts": {"email": "actEmail","opt_type": "actType"}}}}' http://localhost:3000/recipes
+
+curl -H "Content-Type: application/json" -X POST -d '{"user":"luke"}' http://localhost:3000/recipes
+
+curl -H "Content-Type: application/json" -X POST -d '{"recipe":{"name":"luke"}}' http://localhost:3000/recipes
+
+curl -H “Accept: application/json” -H “Content-Type: application/json” -X POST -d '{"hi":"bye"}' http://localhost:3000/recipes
+
+
+
+POST RECIPE TO OUR DB:
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"recipeID": "string", "callbackURL": "string", "trigger":{"temperature": 0,    "scale": "string",    "relation": "string"}}}' http://localhost:3000/recipes
+
+
+
+{
+  "recipeID": "string",
+  "callbackURL": "string",
+  "trigger": {
+    "temperature": 0,
+    "scale": "string",
+    "relation": "string"
+  }
+}
