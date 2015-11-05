@@ -30,7 +30,7 @@ app.get('/', function(req, res){
 
 app.get('/test', function(req, res){
 	res.send("test page");
-	watchForTemperatureHelper(20, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT", 1000);
+	watchForTemperatureHelper(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT", 1000);
 	// watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
 })
 
