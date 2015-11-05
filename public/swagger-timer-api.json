@@ -5,7 +5,7 @@
         "description": "Date and Time Monitoring Service",
         "version": "1.0.0"
     },
-    "host": "date-time-monitor-stage.mybluemix.net",
+    "host": "localhost:3000",
     "schemes": [
         "https"
     ],
