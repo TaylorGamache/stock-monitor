@@ -14,7 +14,7 @@
         "application/json"
     ],
     "paths": {
-        "/timerss": {
+        "/temperature": {
             "post": {
               "summary": "Add/Update a timer",
               "description": "This endpoint is used to add a timers for Date & Time monitoring service",
@@ -25,7 +25,7 @@
                         "description": "Timer JSON to be created",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Timer"
+                            "$ref": "#/definitions/Temperature"
                         }
                     }
                 ],
@@ -82,7 +82,7 @@
         }
     },
     "definitions": {
-        "Timer": {
+        "Temperature": {
             "properties": {
                 "recipeID": {
                     "type": "string",
@@ -100,37 +100,17 @@
         },
         "Trigger": {
             "properties": {
-                "repeat": {
+                "temperature": {
                     "type": "integer",
-                    "description": "Type of trigger"
+                    "description": "Temperature to watch"
                 },
-                "hour": {
-                    "type": "integer",
-                    "description": "Type of trigger (0 to 23)"
-                },
-                "min": {
-                    "type": "integer",
-                    "description": "Type of trigger (0 to 59)"
-                },
-                "interval": {
-                    "type": "integer",
-                    "description": "Type of trigger"
-                },
-                "days": {
-                    "type": "integer",
-                    "description": "Type of trigger (0 to 6 - 0 is Sunday)"
-                },
-                "date": {
-                    "type": "integer",
-                    "description": "Type of trigger (1 to 31)"
-                },
-                "month": {
-                    "type": "integer",
-                    "description": "Type of trigger (1 to 12)"
-                },
-                "timezone": {
+                "scale": {
                     "type": "string",
-                    "description": "Type of trigger (America/New_York)"
+                    "description": "C or F (celsius or fahrenheit)"
+                },
+                "relation": {
+                    "type": "string",
+                    "description": "What to trigger (GT, LT, EQ, NEQ, GEQ, LEQ"
                 }
             }
         },

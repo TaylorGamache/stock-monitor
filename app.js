@@ -6,8 +6,8 @@ var request = require('request');
 var Cloudant = require('cloudant');
 var json = require('json');
 var me = 'lukebelliveau';
-var password = 'bell123!@#';
-
+var password = 'weathermonitor';
+var weatherAPIKey = "02866fb0b0b72a03f9"
 
 var app = express();
 
@@ -21,10 +21,16 @@ var recipesDB = cloudant.db.use('recipes');
 
 app.use(bodyParser.json());
 // app.use(express.json());
+app.use(express.static(__dirname + '/public'));
 
 app.get('/', function(req, res){
 	res.send("Hello world!");
-	watchTrigger();
+	// watchForTemperature();
+})
+
+app.get('/test', function(req, res){
+	res.send("test page");
+	watchForTemperature();
 })
 
 app.get('/hello', function(req, res){
@@ -36,41 +42,34 @@ app.get('/hello', function(req, res){
 	console.log(job);
 })
 
-
 app.post('/recipes', function(req, res){
 	var request = req.body;
 	console.log(request.recipe);
-	console.log(request.recipe.name);
-	var newRecipe = {};
-	newRecipe['recipe'] = request.recipe;
-	newRecipe.recipe['date_created'] = Date();
-	newRecipe.recipe['trigger_count'] = 0;
-	newRecipe.recipe['last_triggered'] = "never";
-	recipesDB.insert(newRecipe, function(err, body, header){
-		var response = {};
-		
-		if(err){
-			res.send("Error adding recipe.");
-		}else{
-			response['success'] = true;
-			response['message'] = "Recipe " + request.recipe.name + " added to DB.";
-			response['recipe'] = request.recipe;
-			response.recipe['id'] = body.id;
-			response.recipe['rev'] = body.rev;
-			response.recipe['date_created'] = Date();
-			response.recipe['trigger_count'] = 0;
-			response.recipe['last_triggered'] = "never"
-			res.status(200).json(response);
-			watchTrigger(body.id); //write method to watch trigger for recipe at this ID
-		}
-		
-	})
-
-
+	
 })
 
-function watchTrigger(){
-	console.log("Hello");
+function watchForTemperature(temp, relation, callback, recipeID){
+	// if(compare != "<"){
+	// 	//this will be extended to also do equal to, greater than
+	// 	console.log("invalid comparison signal");
+	// 	return;
+	// }
+
+	requestURL = "http://api.wunderground.com/api/02866fb0b72a03f9/conditions/q/CA/San_Francisco.json";
+	var temp;
+	request(requestURL, function(err, response, body){
+		if(!err){
+			var parsedbody = JSON.parse(body);
+		temp = parsedbody.current_observation.temp_f;
+		}else{
+			console.log(response);
+			throw err;
+		}
+
+	console.log("temp: " + temp);
+		
+	});
+
 }
 
 
