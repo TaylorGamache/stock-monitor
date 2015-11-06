@@ -9,16 +9,8 @@ curl -H “Accept: application/json” -H “Content-Type: application/json” -
 
 
 POST RECIPE TO OUR DB:
-curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"recipeID": "string", "callbackURL": "string", "trigger":{"temperature": 0,    "scale": "string",    "relation": "string"}}}' http://localhost:3000/recipes
+
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"recipeID": "string", "callbackURL": "string", "trigger":{"temperature": 200,    "scale": "string",  "city":"Storrs", "state":"CT", "relation": "LT"}}}' http://localhost:3000/recipes
 
 
 
-{
-  "recipeID": "string",
-  "callbackURL": "string",
-  "trigger": {
-    "temperature": 0,
-    "scale": "string",
-    "relation": "string"
-  }
-}

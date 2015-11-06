@@ -8,6 +8,7 @@ var json = require('json');
 var me = 'lukebelliveau';
 var password = 'weathermonitor';
 var weatherAPIKey = "02866fb0b72a03f9"
+var triggerCallback = "http://nsds-api-stage.mybluemix.net/api/v1/trigger/"
 
 var app = express();
 
@@ -30,8 +31,8 @@ app.get('/', function(req, res){
 
 app.get('/test', function(req, res){
 	res.send("test page");
-	watchForTemperatureHelper(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT", 1000);
-	// watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
+	// watchForTemperatureHelper(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT", 1000);
+	watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
 })
 
 app.post('/recipes', function(req, res){
@@ -40,9 +41,24 @@ app.post('/recipes', function(req, res){
 	2.) start watchForTemperatureHelper
 	*/
 	var request = req.body;
-	console.log("printing request body:");
-	console.log(request.recipe);
-	res.send("insert response JSON here");
+	// console.log(request.recipe.trigger);
+	recipesDB.insert(request, function(err, body, header){
+		var response = {};
+		if(err){
+			res.send("Error adding recipe.");
+		}else{
+			var recipeID = body.id;
+			response['success'] = true;
+			response['message'] = "Recipe added to DB.";
+			res.status(200).json(response);
+			var targetTemp = request.recipe.trigger.temperature;
+			var city = request.recipe.trigger.city;
+			var state = request.recipe.trigger.state;
+			var relation = request.recipe.trigger.relation;
+			console.log(targetTemp + " " + city + " " + " " + state);
+			watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
+		}
+	})
 	
 })
 
@@ -60,6 +76,7 @@ function watchForTemperature(targetTemp, relation, callback, recipeID, city, sta
 	requestURL = "http://api.wunderground.com/api/"
 	requestURL += weatherAPIKey + "/conditions/q/"
 	requestURL += state + "/" + city + ".json";
+	console.log(requestURL);
 
 	request(requestURL, function(err, response, body){
 		if(!err){
