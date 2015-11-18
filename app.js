@@ -9,6 +9,7 @@ var me = 'lukebelliveau';
 var password = 'weathermonitor';
 var weatherAPIKey = "02866fb0b72a03f9"
 var triggerCallback = "http://nsds-api-stage.mybluemix.net/api/v1/trigger/"
+var CronJob = require('cron').CronJob;
 
 var app = express();
 
@@ -35,6 +36,17 @@ app.get('/test', function(req, res){
 	watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
 })
 
+app.post('/test', function(req, res) {
+	console.log("The Watching Demo.");
+	var targetTemp = 50;
+	var city = "Storrs";
+	var state = "CT";
+	var relation = "LT";
+	var recipeID = "1";
+	watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
+	
+});
+
 app.post('/recipes', function(req, res){
 	/**
 	1.) Store recipe in DB and return response
@@ -56,7 +68,11 @@ app.post('/recipes', function(req, res){
 			var state = request.recipe.trigger.state;
 			var relation = request.recipe.trigger.relation;
 			console.log(targetTemp + " " + city + " " + " " + state);
-			watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
+			var cronJob = cron.job("0 0 */4 * * *", function(){
+				watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
+				console.info('cron job complete');
+			});
+			cronJob.start();
 		}
 	})
 	
