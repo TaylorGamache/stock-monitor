@@ -9,7 +9,7 @@ var me = 'lukebelliveau';
 var password = 'weathermonitor';
 var weatherAPIKey = "02866fb0b72a03f9"
 var triggerCallback = "http://nsds-api-stage.mybluemix.net/api/v1/trigger/"
-var CronJob = require('cron').CronJob;
+var cron = require('cron');
 
 var app = express();
 
@@ -36,21 +36,33 @@ app.get('/test', function(req, res){
 	watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
 })
 
-app.post('/test', function(req, res) {
+//Tests watch function without using curl
+app.get('/test1', function(req, res) {
+	res.send("Demo Test Page");
 	console.log("The Watching Demo.");
 	var targetTemp = 50;
 	var city = "Storrs";
 	var state = "CT";
 	var relation = "LT";
 	var recipeID = "1";
-	watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
-	
+	var noise = true; 
+	// Runs watch for Temperature every 4 hours at the start of the hour
+	var cronJob = cron.job("0 */1 * * * *", function(){
+		if (noise == true) {
+			noise = watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
+			console.info('cron job complete');
+		} else {
+			noise = true;
+			console.info('Noise Prevenetion working');
+		}
+	});
+	cronJob.start();
 });
 
 app.post('/recipes', function(req, res){
 	/**
 	1.) Store recipe in DB and return response
-	2.) start watchForTemperatureHelper
+	2.) start cronJob
 	*/
 	var request = req.body;
 	// console.log(request.recipe.trigger);
@@ -68,9 +80,15 @@ app.post('/recipes', function(req, res){
 			var state = request.recipe.trigger.state;
 			var relation = request.recipe.trigger.relation;
 			console.log(targetTemp + " " + city + " " + " " + state);
+			var noise = true; 
+			// Runs watch for Temperature every 4 hours at the start of the hour
 			var cronJob = cron.job("0 0 */4 * * *", function(){
-				watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
-				console.info('cron job complete');
+				if (noise == true) {
+					noise = watchForTemperature(targetTemp, relation, triggerCallback, recipeID, city, state);
+					console.info('cron job complete');
+				} else {
+					noise = true;
+				}
 			});
 			cronJob.start();
 		}
@@ -78,9 +96,11 @@ app.post('/recipes', function(req, res){
 	
 })
 
+/*
 function watchForTemperatureHelper(targetTemp, relation, callback, recipeID, city, state, timeout){
 	setInterval(watchForTemperature(targetTemp, relation, callback, recipeID, city, state), timeout);
 }
+*/
 
 function watchForTemperature(targetTemp, relation, callback, recipeID, city, state){
 	if(relation != "LT"){
@@ -94,6 +114,7 @@ function watchForTemperature(targetTemp, relation, callback, recipeID, city, sta
 	requestURL += state + "/" + city + ".json";
 	console.log(requestURL);
 
+	// Added 2 return statements for noise cancelling
 	request(requestURL, function(err, response, body){
 		if(!err){
 			var parsedbody = JSON.parse(body);
@@ -111,6 +132,9 @@ function watchForTemperature(targetTemp, relation, callback, recipeID, city, sta
 						throw err;
 					}
 				});
+				return false;
+			} else {
+				return true;
 			}
 		}else{
 			console.log(response);
