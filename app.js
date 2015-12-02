@@ -31,7 +31,15 @@ app.use(express.static(__dirname + '/public'));
 
 // test function
 app.get('/1', function(req, res){
-	res.send("Hello world!");	
+	res.send("Hello world!");
+	// Used to add data for id number
+	/*var DATA = {"id":0};
+	recipesDB.insert(DATA,'idCounter', function(err, body, header){
+		//var response = {};
+		if(err){
+			res.send("Error adding recipe.");
+		}
+	})*/
 })
 
 app.get('/test', function(req, res){
@@ -66,28 +74,46 @@ app.get('/test1', function(req, res) {
 	console.log("The Make and Watch Demo.");
 	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":32, "scale":"string", "city":"Storrs","state":"CT", "relation":"GT"}}};
 	var relation = "GT";
-	//edit so 'recipeID1' changes
-	recipesDB.insert(request,'recipeID3', function(err, body, header){
-		//var response = {};
-		if(err){
-			res.send("Error adding recipe.");
-		}else{
-			
-			// Runs watch for Temperature every 1 minute at the start of the minute
-			var cronJob = cron.job("0 */1 * * * *", function(){
-				if (noise == true) {
-					//sets up if recipe is calling for temperature monitoring
-					if (relation == "LT" || relation == "GT" || relation=="EQ") {
-						watchTemperature("recipeID1");
-					}
-					console.info('cron job complete');
+	var idNum = 0;
+	
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			// converts to string for name
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
 				} else {
-					noise = true;
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						//var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							//sets up if recipe is calling for temperature monitoring
+							if (relation == "LT" || relation == "GT" || relation=="EQ") {
+								// Runs watch for Temperature every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function(){
+									if (noise == true) {
+										watchTemperature(idNum);
+										console.info('cron job complete');
+									} else {
+										noise = true;
+									}
+								});
+							}
+							cronJob.start();
+						}
+					})
 				}
-			});
-			cronJob.start();
+			})
+			
 		}
 	})
+	
 });
 
 app.post('/recipes', function(req, res){
@@ -95,36 +121,53 @@ app.post('/recipes', function(req, res){
 	1.) Store recipe in DB and return response
 	2.) start cronJob
 	*/
+	var idNum = 0;
 	var request = req.body;
 	// console.log(request.recipe.trigger);
-	//edit so "recipeID2" changes
-	recipesDB.insert(request,'recipeID2', function(err, body, header){
-		var response = {};
-		if(err){
-			res.send("Error adding recipe.");
-		}else{
-			var recipeID = body.id;
-			response['success'] = true;
-			response['message'] = "Recipe added to DB.";
-			res.status(200).json(response);
-			var targetTemp = request.recipe.trigger.temperature;
-			var city = request.recipe.trigger.city;
-			var state = request.recipe.trigger.state;
-			var relation = request.recipe.trigger.relation;
-			console.log(targetTemp + " " + city + " " + " " + state); 
-			// Runs watch for Temperature every 4 hours at the start of the hour
-			var cronJob = cron.job("0 0 */4 * * *", function(){
-				if (noise == true) {
-					//sets up if recipe is calling for temperature monitoring
-					if (relation == "LT" || relation == "GT" || relation=="EQ") {
-						watchTemperature('recipeID2');
-					}
-					console.info('cron job complete');
+	// gets idCounter increments it for new recipe ID and updates DB
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
 				} else {
-					noise = true;
+					//If successfully updated it stores new recipe in DB 
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							var recipeID = body.id;
+							response['success'] = true;
+							response['message'] = "Recipe added to DB.";
+							res.status(200).json(response);
+							var targetTemp = request.recipe.trigger.temperature;
+							var city = request.recipe.trigger.city;
+							var state = request.recipe.trigger.state;
+							var relation = request.recipe.trigger.relation;
+							console.log(targetTemp + " " + city + " " + " " + state); 
+							//sets up if recipe is calling for temperature monitoring
+							if (relation == "LT" || relation == "GT" || relation=="EQ") {
+								// Runs watch for Temperature every 4 hours at the start of the hour
+								var cronJob = cron.job("0 0 */4 * * *", function(){
+									if (noise == true) {
+										watchTemperature(idNum);
+										console.info('cron job complete');
+									} else {
+										noise = true;
+									}
+								});
+								cronJob.start();
+							}
+						}
+					})
 				}
-			});
-			cronJob.start();
+			})
 		}
 	})
 	
@@ -178,7 +221,7 @@ function watchTemperature(recipeIDNum){
 						// does LT relation
 						if(currentTemp < targetTemp){
 							console.log("Target hit, calling callback URL...");
-							callback += recipeID;
+							callback += recipeIDNum;
 							request(callback, function(err, response, body){
 								if(!err){
 									console.log("successfully sent trigger, response body:");
@@ -196,7 +239,7 @@ function watchTemperature(recipeIDNum){
 						// does GT relation
 						if(currentTemp > targetTemp){
 							console.log("Target hit, calling callback URL...");
-							callback += recipeID;
+							callback += recipeIDNum;
 							request(callback, function(err, response, body){
 								if(!err){
 									console.log("successfully sent trigger, response body:");
@@ -214,7 +257,7 @@ function watchTemperature(recipeIDNum){
 						// does EQ relation
 						if(currentTemp == targetTemp){
 							console.log("Target hit, calling callback URL...");
-							callback += recipeID;
+							callback += recipeIDNum;
 							request(callback, function(err, response, body){
 								if(!err){
 									console.log("successfully sent trigger, response body:");
