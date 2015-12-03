@@ -52,7 +52,8 @@ app.get('/test', function(req, res){
 // Current Weather Test
 app.get('/CurWeatherTest', function(req, res) {
 	res.send("The Make and Watch Current Weather Demo.");
-	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"weather":"rain","city":"Storrs","state":"CT", "relation":"currentWeather"}}};
+	// need to find options for weather
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"weather":"cloudy","city":"Storrs","state":"CT", "relation":"currentWeather"}}};
 	var relation = "currentWeather";
 	var idNum = 0;
 	
@@ -265,15 +266,19 @@ app.post('/recipes', function(req, res){
 								});
 								cronJob.start();
 							} else if (relation == "Alert") {
-								// Runs watch for weather advisories every 1 minute at the start of the minute
-								var cronJob = cron.job("0 */1 * * * *", function() {
+								// Runs watch for weather advisories every 1 hour at the start of the minute
+								var cronJob = cron.job("0 0 */1 * * *", function() {
 									watchAlert(idNum);
 								});
 								cronJob.start();
 							} else if (relation == "currentWeather") {
-								// Runs watch for weather every 1 minute at the start of the minute
-								var cronJob = cron.job("0 */1 * * * *", function() {
-									watchCurWeather(idNum);
+								// Runs watch for weather every 1 hour at the start of the minute
+								var cronJob = cron.job("0 0 */1 * * *", function() {
+									if (noise == true) {
+										watchCurWeather(idNum);
+									} else {
+										noise = true;
+									}
 								});
 								cronJob.start();
 							}
@@ -426,12 +431,12 @@ function watchAlert(recipeIDNum){
 			// for the wanted information and does the comparison
 			request(requestURL, function(err, response, body){
 				if(!err){
-					// Gets the current alerts from response
+					// Gets the current alert description from response
 					var parsedbody = JSON.parse(body);
 					var currentAlert = parsedbody.alerts.description;
 					//console.log("current weather alerts: " + currentAlert);
 					if (currentAlert === undefined) {
-						//Do nothing
+						//Do nothing if there is no alert description (meaning no alert)
 						pastAlert = currentAlert;
 					} else { 
 					// if past alert is not the same as current alert set off trigger
@@ -483,7 +488,7 @@ function watchCurWeather(recipeIDNum) {
 
 			// Sets ups request from weather api
 			requestURL = "http://api.wunderground.com/api/"
-			requestURL += weatherAPIKey + "/forecast/q/"
+			requestURL += weatherAPIKey + "/conditions/q/"
 			requestURL += state + "/" + city + ".json";
 			// console.log(requestURL);
 
@@ -493,30 +498,38 @@ function watchCurWeather(recipeIDNum) {
 				if(!err){
 					// Gets the current alerts from response
 					var parsedbody = JSON.parse(body);
-					var currentAlert = parsedbody.forecast.txt_forecast..description;
-					//console.log("current weather alerts: " + currentAlert);
-					if (currentAlert === undefined) {
-						//Do nothing
-						pastAlert = currentAlert;
-					} else { 
-					// if past alert is not the same as current alert set off trigger
-						if ( pastAlert != currentAlert ) {
-							pastAlert = currentAlert;
-							// sets off trigger
-							console.log("Target hit, calling callback URL...");
-							callback += recipeIDNum;
-							request(callback, function(err, response, body){
-								if(!err){
-									console.log("successfully sent trigger, response body:");
-									console.log(body);
-								}else{
-									console.log(response);
-									throw err;
-								}
-							});
-						}
+					var curWeather = parsedbody.current_observation.weather;
+					console.log("current weather: " + curWeather);
+					// checks if the current weather string contains the string
+					// of the wanted condition
+					var check;
+					if (weatherCond == "rain") {
+						check = curWeather.search(/rain/i);
+					} else if (weatherCond == "snow") {
+						check = curWeather.search(/snow/i);
+					} else if (weatherCond == "cloudy") {
+						check = curWeather.search(/cloudy/i);
+					} else if (weatherCond == "clear") {
+						check = curWeather.search(/clear/i);
 					}
-				}else{
+					// if past alert is not the same as current alert set off trigger
+					if ( check != (-1))  {
+						console.log("Target hit, calling callback URL...");
+						callback += recipeIDNum;
+						request(callback, function(err, response, body){
+							if(!err){
+								console.log("successfully sent trigger, response body:");
+								console.log(body);
+							}else{
+								console.log(response);
+								throw err;
+							}
+						});
+						noise = false;
+					} else {
+						noise = true;
+					}
+				} else {
 					console.log(response);
 					throw err;
 				}
@@ -525,139 +538,4 @@ function watchCurWeather(recipeIDNum) {
 	});
 }
 
-
-/* Old version of watchTemperature 
-function watchForTemperature(targetTemp, relation, callback, recipeID, city, state){
-<<<<<<< HEAD
-	
-	if(relation != "LT" && relation != "GT" && relation != "EQ"){
-=======
-	if(relation != "LT" || relation != "GT"){
-		//this will be extended to also do equal to, greater than
->>>>>>> origin/master
-		console.log("invalid comparison signal");
-		return;
-	}
-
-	// Sets ups request from weather api
-	requestURL = "http://api.wunderground.com/api/"
-	requestURL += weatherAPIKey + "/conditions/q/"
-	requestURL += state + "/" + city + ".json";
-	// console.log(requestURL);
-
-	// sends the request to the weather api and parses through the response 
-	// for the wanted information and does the comparison
-	request(requestURL, function(err, response, body){
-		if(!err){
-			// Gets the current temperature from response
-			var parsedbody = JSON.parse(body);
-			var currentTemp = parsedbody.current_observation.temp_f;
-			console.log("current temp: " + currentTemp);
-			
-			// Does the appropriate comparison depending on the relation and stores a boolean
-			// value in noise
-			if (relation == "LT") {
-				if(currentTemp < targetTemp){
-					console.log("Target hit, calling callback URL...");
-					callback += recipeID;
-					request(callback, function(err, response, body){
-						if(!err){
-							console.log("successfully sent trigger, response body:");
-							console.log(body);
-						}else{
-							console.log(response);
-							throw err;
-						}
-					});
-					noise = false;
-				} else {
-					noise = true;
-				}
-			} else if (relation == "GT") {
-				if(currentTemp > targetTemp){
-					console.log("Target hit, calling callback URL...");
-					callback += recipeID;
-					request(callback, function(err, response, body){
-						if(!err){
-							console.log("successfully sent trigger, response body:");
-							console.log(body);
-						}else{
-							console.log(response);
-							throw err;
-						}
-					});
-					noise = false;
-				} else {
-					noise = true;
-				}
-			} else if (relation == "EQ") {
-				if(currentTemp == targetTemp){
-					console.log("Target hit, calling callback URL...");
-					callback += recipeID;
-					request(callback, function(err, response, body){
-						if(!err){
-							console.log("successfully sent trigger, response body:");
-							console.log(body);
-						}else{
-							console.log(response);
-							throw err;
-						}
-					});
-					noise = false;
-				} else {
-					noise = true;
-				}
-			}
-			if (currentTemp > targetTemp){
-				console.log("Target hit, calling callback URL...");
-				callback += recipeID;
-				request(callback, function(err, response, body){
-					if(!err){
-						console.log("successfully sent trigger, response body:");
-						console.log(body);
-					}else{
-						console.log(response);
-						throw err;
-					}
-				});
-			}
-		}else{
-			console.log(response);
-			throw err;
-		}
-		
-	});
-<<<<<<< HEAD
-}*/
-=======
-}
-/* Function for getting weather alerts */
-function watchForTemperatureAlert(targetTemp, relation, callback, recipeID, city, state){
-	if(relation != "Alert"){
-		//this will be extended to also do equal to, greater than
-		console.log("invalid relation");
-		return;
-	}
-	requestURL = "http://api.wunderground.com/api/"
-	requestURL += weatherAPIKey + "/alerts/q/"
-	requestURL += state + "/" + city + ".json";
-	console.log(requestURL);
->>>>>>> origin/master
-
-	request(requestURL, function(err, response, body){
-		if(!err){
-			//
-			//Parse response, determine what relation will serve as trigger
-			var parsedbody = JSON.parse(body);
-			var currType = parsedbody.type;
-			console.log("type of alert: " + type);
-			
-		}else{
-			console.log(response);
-			throw err;
-		}
-		
-	});
-}
 app.listen(port);
-
