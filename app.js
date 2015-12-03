@@ -49,6 +49,48 @@ app.get('/test', function(req, res){
 	watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
 })
 
+// Current Weather Test
+app.get('/CurWeatherTest', function(req, res) {
+	res.send("The Make and Watch Current Weather Demo.");
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"weather":"rain","city":"Storrs","state":"CT", "relation":"currentWeather"}}};
+	var relation = "currentWeather";
+	var idNum = 0;
+	
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			// converts to string for name
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
+				} else {
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						//var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							//sets up if recipe is calling for temperature monitoring
+							if (relation == "currentWeather") {
+								// Runs watch for Temperature every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function(){
+									watchCurWeather(idNum);
+								});
+							}
+							cronJob.start();
+						}
+					})
+				}
+			})
+			
+		}
+	})
+	
+});
+
 // Weather Advisory Test
 app.get('/AlertTest', function(req, res) {
 	res.send("Alert Test Page");
@@ -101,14 +143,31 @@ app.get('/AlertTest', function(req, res) {
 app.get('/WatchDemo', function(req, res){
 	res.send("DEMO");
 	console.log("The Watch Demo");
-	// Runs watch for Temperature every 1 minute at the start of the minute
-	var cronJob = cron.job("0 */1 * * * *", function(){
-		if (noise == true) {
-			//sets up if recipe is calling for temperature monitoring
-			watchTemperature("8");
-			console.info('cron job complete');
+	var idNum = "8";
+	// Finds out what the relation of the recipe is
+	recipesDB.get(recipeIDNum, function(err, data) {
+		if (err) {
+			throw err;
 		} else {
-			noise = true;
+			var relation = data.recipe.trigger.relation;
+			// Runs watch for Temperature every 1 minute at the start of the minute
+			if (relation == "LT" || relation == "GT" || relation=="EQ") {
+				// Runs watch for Temperature every 4 hours at the start of the hour
+				var cronJob = cron.job("0 0 */4 * * *", function(){
+					if (noise == true) {
+						watchTemperature(idNum);
+					} else {
+						noise = true;
+					}
+				});
+				cronJob.start();
+			} else if (relation == "Alert") {
+				// Runs watch for weather advisories every 1 minute at the start of the minute
+				var cronJob = cron.job("0 */1 * * * *", function() {
+					watchAlert(idNum);
+				});
+				cronJob.start();
+			}
 		}
 	});
 	cronJob.start();
@@ -210,7 +269,15 @@ app.post('/recipes', function(req, res){
 								var cronJob = cron.job("0 */1 * * * *", function() {
 									watchAlert(idNum);
 								});
+								cronJob.start();
+							} else if (relation == "currentWeather") {
+								// Runs watch for weather every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function() {
+									watchCurWeather(idNum);
+								});
+								cronJob.start();
 							}
+							
 						}
 					})
 				}
@@ -392,6 +459,72 @@ function watchAlert(recipeIDNum){
 		}
 	});
 }
+
+// Takes recipe out of database with database key recipeIDnum and sends a get request to
+// api and potentially sets off a trigger
+function watchCurWeather(recipeIDNum) {
+	// gets recipe from database from the key recipeIDNum
+	recipesDB.get(recipeIDNum, function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			var city = data.recipe.trigger.city;
+			var state = data.recipe.trigger.state;
+			var relation = data.recipe.trigger.relation;
+			var callback = data.recipe.callbackURL;
+			var weatherCond = data.recipe.weather;
+	
+			// validates relation
+			if(relation != "currentWeather" ){
+				console.log("invalid comparison signal");
+				return;
+			}
+
+			// Sets ups request from weather api
+			requestURL = "http://api.wunderground.com/api/"
+			requestURL += weatherAPIKey + "/forecast/q/"
+			requestURL += state + "/" + city + ".json";
+			// console.log(requestURL);
+
+			// sends the request to the weather api and parses through the response 
+			// for the wanted information and does the comparison
+			request(requestURL, function(err, response, body){
+				if(!err){
+					// Gets the current alerts from response
+					var parsedbody = JSON.parse(body);
+					var currentAlert = parsedbody.forecast.txt_forecast..description;
+					//console.log("current weather alerts: " + currentAlert);
+					if (currentAlert === undefined) {
+						//Do nothing
+						pastAlert = currentAlert;
+					} else { 
+					// if past alert is not the same as current alert set off trigger
+						if ( pastAlert != currentAlert ) {
+							pastAlert = currentAlert;
+							// sets off trigger
+							console.log("Target hit, calling callback URL...");
+							callback += recipeIDNum;
+							request(callback, function(err, response, body){
+								if(!err){
+									console.log("successfully sent trigger, response body:");
+									console.log(body);
+								}else{
+									console.log(response);
+									throw err;
+								}
+							});
+						}
+					}
+				}else{
+					console.log(response);
+					throw err;
+				}
+			});
+		}
+	});
+}
+
 
 /* Old version of watchTemperature 
 function watchForTemperature(targetTemp, relation, callback, recipeID, city, state){
