@@ -67,7 +67,7 @@ function watchForTemperatureHelper(targetTemp, relation, callback, recipeID, cit
 }
 
 function watchForTemperature(targetTemp, relation, callback, recipeID, city, state){
-	if(relation != "LT"){
+	if(relation != "LT" || relation != "GT"){
 		//this will be extended to also do equal to, greater than
 		console.log("invalid comparison signal");
 		return;
@@ -96,6 +96,19 @@ function watchForTemperature(targetTemp, relation, callback, recipeID, city, sta
 					}
 				});
 			}
+			if (currentTemp > targetTemp){
+				console.log("Target hit, calling callback URL...");
+				callback += recipeID;
+				request(callback, function(err, response, body){
+					if(!err){
+						console.log("successfully sent trigger, response body:");
+						console.log(body);
+					}else{
+						console.log(response);
+						throw err;
+					}
+				});
+			}
 		}else{
 			console.log(response);
 			throw err;
@@ -103,6 +116,32 @@ function watchForTemperature(targetTemp, relation, callback, recipeID, city, sta
 		
 	});
 }
+/* Function for getting weather alerts */
+function watchForTemperatureAlert(targetTemp, relation, callback, recipeID, city, state){
+	if(relation != "Alert"){
+		//this will be extended to also do equal to, greater than
+		console.log("invalid relation");
+		return;
+	}
+	requestURL = "http://api.wunderground.com/api/"
+	requestURL += weatherAPIKey + "/alerts/q/"
+	requestURL += state + "/" + city + ".json";
+	console.log(requestURL);
 
+	request(requestURL, function(err, response, body){
+		if(!err){
+			//
+			//Parse response, determine what relation will serve as trigger
+			var parsedbody = JSON.parse(body);
+			var currType = parsedbody.type;
+			console.log("type of alert: " + type);
+			
+		}else{
+			console.log(response);
+			throw err;
+		}
+		
+	});
+}
 app.listen(port);
 
