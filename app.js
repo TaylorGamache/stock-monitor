@@ -41,19 +41,19 @@ app.get('/1', function(req, res){
 			res.send("Error adding recipe.");
 		}
 	})*/
-})
+});
 
 app.get('/test', function(req, res){
 	res.send("test page");
 	// watchForTemperatureHelper(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT", 1000);
 	watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
-})
+});
 
 // Current Weather Test
 app.get('/CurWeatherTest', function(req, res) {
 	res.send("The Make and Watch Current Weather Demo.");
 	// need to find options for weather
-	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"weather":"cloudy","city":"Storrs","state":"CT", "relation":"currentWeather"}}};
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"weather":"clear","city":"Storrs","state":"CT", "relation":"currentWeather"}}};
 	var relation = "currentWeather";
 	var idNum = 0;
 	
@@ -168,11 +168,19 @@ app.get('/WatchDemo', function(req, res){
 					watchAlert(idNum);
 				});
 				cronJob.start();
+			} else if (relation == "currentWeather") {
+				// Runs watch for weather every 1 hour at the start of the minute
+				var cronJob = cron.job("0 0 */1 * * *", function() {
+					if (noise == true) {
+						watchCurWeather(idNum);
+					} else {
+						noise = true;
+					}
+				});
+				cronJob.start();
 			}
 		}
-	});
-	cronJob.start();
-	
+	});	
 })
 
 //Tests watch function for current temperature without using curl and stores new recipe in DB
@@ -290,7 +298,7 @@ app.post('/recipes', function(req, res){
 		}
 	})
 	
-})
+});
 
 /*
 function watchForTemperatureHelper(targetTemp, relation, callback, recipeID, city, state, timeout){
@@ -478,7 +486,7 @@ function watchCurWeather(recipeIDNum) {
 			var state = data.recipe.trigger.state;
 			var relation = data.recipe.trigger.relation;
 			var callback = data.recipe.callbackURL;
-			var weatherCond = data.recipe.weather;
+			var weatherCond = data.recipe.trigger.weather;
 	
 			// validates relation
 			if(relation != "currentWeather" ){
@@ -499,10 +507,10 @@ function watchCurWeather(recipeIDNum) {
 					// Gets the current alerts from response
 					var parsedbody = JSON.parse(body);
 					var curWeather = parsedbody.current_observation.weather;
-					console.log("current weather: " + curWeather);
+					console.log("current weather: " + curWeather + "\n" + "Weather Condition: " + weatherCond);
 					// checks if the current weather string contains the string
 					// of the wanted condition
-					var check;
+					var check = -1;
 					if (weatherCond == "rain") {
 						check = curWeather.search(/rain/i);
 					} else if (weatherCond == "snow") {
@@ -512,7 +520,7 @@ function watchCurWeather(recipeIDNum) {
 					} else if (weatherCond == "clear") {
 						check = curWeather.search(/clear/i);
 					}
-					// if past alert is not the same as current alert set off trigger
+					// if there is a match than set off trigger
 					if ( check != (-1))  {
 						console.log("Target hit, calling callback URL...");
 						callback += recipeIDNum;
