@@ -14,3 +14,4 @@ curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -
 
 
 
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"recipeID": "string", "callbackURL": "string", "trigger":{"temperature": 200,    "scale": "string",  "city":"Storrs", "state":"CT", "relation": "LT"}}}' http://onit.bluemix.net/recipes
