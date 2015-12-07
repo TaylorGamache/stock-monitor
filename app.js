@@ -500,7 +500,7 @@ app.post('/recipes', function(req, res){
 						}else{
 							var recipeID = body.id;
 							response['success'] = true;
-							response['message'] = "Recipe added to DB.";
+							response['message'] = "Recipee added to DB.";
 							res.status(200).json(response);
 							var relation = request.recipe.trigger.relation;
 							//sets up if recipe is calling for temperature monitoring
