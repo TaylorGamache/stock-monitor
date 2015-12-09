@@ -33,20 +33,180 @@ app.use(express.static(__dirname + '/public'));
 // test function
 app.get('/1', function(req, res){
 	res.send("Hello world!");
-	// Used to add data for id number
-	/*var DATA = {"id":0};
-	recipesDB.insert(DATA,'idCounter', function(err, body, header){
-		//var response = {};
-		if(err){
-			res.send("Error adding recipe.");
-		}
-	})*/
 });
 
 app.get('/test', function(req, res){
 	res.send("test page");
 	// watchForTemperatureHelper(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT", 1000);
 	watchForTemperature(200, "LT", "http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "dummyID", "Storrs", "CT");
+});
+
+// Todays sunrise/sunset forecast Test
+app.get('/todSunTest', function(req, res) {
+	res.send("The Make and Watch Todays sun Demo.");
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{ "city":"Storrs","state":"CT", "relation":"todSunrise"}}};
+	var relation = "todSunrise";
+	var idNum = 0;
+	
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			// converts to string for name
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
+				} else {
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						//var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							//sets up if recipe is calling for weather monitoring
+							if (relation == "todSunrise" || relation == "todSunset") {
+								// Runs watch every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function(){
+									todaySun(idNum);
+								});
+							}
+							cronJob.start();
+						}
+					})
+				}
+			})
+			
+		}
+	})
+	
+});
+
+// Todays max humidity forecast Test
+app.get('/todMaxHumidTest', function(req, res) {
+	res.send("The Make and Watch Todays Max Humidity Demo.");
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"humidity":90, "city":"Storrs","state":"CT", "relation":"todHumid"}}};
+	var relation = "todHumid";
+	var idNum = 0;
+	
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			// converts to string for name
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
+				} else {
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						//var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							//sets up if recipe is calling for weather monitoring
+							if (relation == "todHumid") {
+								// Runs watch every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function(){
+									todayHumid(idNum);
+								});
+							}
+							cronJob.start();
+						}
+					})
+				}
+			})
+			
+		}
+	})
+	
+});
+
+// Todays max wind forecast Test
+app.get('/todMaxWindTest', function(req, res) {
+	res.send("The Make and Watch Todays Max Wind Demo.");
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"wind":90, "type":"US", "city":"Storrs","state":"CT", "relation":"todWind"}}};
+	var relation = "todWind";
+	var idNum = 0;
+	
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			// converts to string for name
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
+				} else {
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						//var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							//sets up if recipe is calling for weather monitoring
+							if (relation == "todWind") {
+								// Runs watch every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function(){
+									todayWind(idNum);
+								});
+							}
+							cronJob.start();
+						}
+					})
+				}
+			})
+			
+		}
+	})
+	
+});
+
+// Current UV Test
+app.get('/todaysUVTest', function(req, res) {
+	res.send("The Make and Watch Todays UV Demo.");
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"UV":10, "city":"Storrs","state":"CT", "relation":"todUV"}}};
+	var relation = "todUV";
+	var idNum = 0;
+	
+	recipesDB.get('idCounter', function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			data.id = data.id + 1;
+			// converts to string for name
+			idNum = data.id;
+			recipesDB.insert(data,data.id, function(err,data2) {
+				if (err) {
+					console.log('Error updating ID number.\n'+err);
+				} else {
+					recipesDB.insert(request,idNum.toString(), function(err, body, header){
+						//var response = {};
+						if(err){
+							res.send("Error adding recipe.");
+						}else{
+							//sets up if recipe is calling for weather monitoring
+							if (relation == "todUV") {
+								// Runs watch every 1 minute at the start of the minute
+								var cronJob = cron.job("0 */1 * * * *", function(){
+									todayUV(idNum);
+								});
+							}
+							cronJob.start();
+						}
+					})
+				}
+			})
+			
+		}
+	})
+	
 });
 
 // Tomorrows Low temp forecast Test
@@ -136,7 +296,7 @@ app.get('/tomHtempTest', function(req, res) {
 // Tomorrows Weather forecast Test
 app.get('/tomForecastTest', function(req, res) {
 	res.send("The Make and Watch Tomorrows Forecast Demo.");
-	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"city":"Storrs","state":"CT", "relation":"tomForecast"}}};
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"type": "US", "city":"Storrs","state":"CT", "relation":"tomForecast"}}};
 	var relation = "tomForecast";
 	var idNum = 0;
 	
@@ -178,7 +338,7 @@ app.get('/tomForecastTest', function(req, res) {
 // Current Weather forecast Test
 app.get('/curForecastTest', function(req, res) {
 	res.send("The Make and Watch Current Forecast Demo.");
-	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"city":"Storrs","state":"CT", "relation":"curForecast"}}};
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"type": "US","city":"Storrs","state":"CT", "relation":"curForecast"}}};
 	var relation = "curForecast";
 	var idNum = 0;
 	
@@ -419,6 +579,30 @@ app.get('/WatchDemo', function(req, res){
 					tomLowTemp(idNum);
 				});
 				cronJob.start();
+			} else if (relation == "todHumid") {
+				// Runs every day at 5 am
+				var cronJob = cron.job("0 0 5 */1 * *", function(){
+					todayHumid(idNum);
+				});
+				cronJob.start();
+			} else if (relation == "todWind") {
+				// Runs every day at 5 am
+				var cronJob = cron.job("0 0 5 */1 * *", function(){
+					todayWind(idNum);
+				});
+				cronJob.start();
+			} else if (relation == "todUV") {
+				// Runs every day at noon
+				var cronJob = cron.job("0 0 12 */1 * *", function(){
+					todayUV(idNum);
+				});
+				cronJob.start();
+			} else if (relation == "todSunrise" || relation == "todSunset") {
+				// Runs every day at noon
+				var cronJob = cron.job("0 0 12 */1 * *", function(){
+					todaySun(idNum);
+				});
+				cronJob.start();
 			}
 		}
 	});	
@@ -428,7 +612,7 @@ app.get('/WatchDemo', function(req, res){
 app.get('/MakeAndWatchDemo', function(req, res) {
 	res.send("Demo Test Page");
 	console.log("The Make and Watch Demo.");
-	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":32, "scale":"string", "city":"Storrs","state":"CT", "relation":"GT"}}};
+	var request = {"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":32, "tempType":"F", "city":"Storrs","state":"CT", "relation":"GT"}}};
 	var relation = "GT";
 	var idNum = 0;
 	
@@ -538,26 +722,50 @@ app.post('/recipes', function(req, res){
 								cronJob.start();
 							} else if (relation == "curForecast") {
 								// Runs every day at 4 am
-								var cronJob = cron.job("0 0 */4 */1 * *", function(){
+								var cronJob = cron.job("0 0 4 */1 * *", function(){
 									todaysWeather(idNum);
 								});
 								cronJob.start();
 							} else if (relation == "tomForecast") {
 								// Runs every day at noon
-								var cronJob = cron.job("0 0 */12 */1 * *", function(){
+								var cronJob = cron.job("0 0 12 */1 * *", function(){
 									tomWeather(idNum);
 								});
 								cronJob.start();
 							} else if (relation == "tomHtemp") {
 								// Runs every day at noon
-								var cronJob = cron.job("0 0 */12 */1 * *", function(){
+								var cronJob = cron.job("0 0 12 */1 * *", function(){
 									tomHighTemp(idNum);
 								});
 								cronJob.start();
 							} else if (relation == "tomLtemp") {
 								// Runs every day at noon
-								var cronJob = cron.job("0 0 */12 */1 * *", function(){
+								var cronJob = cron.job("0 0 12 */1 * *", function(){
 									tomLowTemp(idNum);
+								});
+								cronJob.start();
+							} else if (relation == "todHumid") {
+								// Runs every day at 5 am
+								var cronJob = cron.job("0 0 5 */1 * *", function(){
+									todayHumid(idNum);
+								});
+								cronJob.start();
+							} else if (relation == "todWind") {
+								// Runs every day at 5 am
+								var cronJob = cron.job("0 0 5 */1 * *", function(){
+									todayWind(idNum);
+								});
+								cronJob.start();
+							} else if (relation == "todUV") {
+								// Runs every day at noon
+								var cronJob = cron.job("0 0 12 */1 * *", function(){
+									todayUV(idNum);
+								});
+								cronJob.start();
+							} else if (relation == "todSunrise" || relation == "todSunset") {
+								// Runs every day at noon
+								var cronJob = cron.job("0 0 12 */1 * *", function(){
+									todaySun(idNum);
 								});
 								cronJob.start();
 							}
@@ -591,6 +799,7 @@ function watchTemperature(recipeIDNum){
 			var state = data.recipe.trigger.state;
 			var relation = data.recipe.trigger.relation;
 			var callback = data.recipe.callbackURL;
+			var type = data.recipe.trigger.tempType;
 	
 			// validates relation
 			if(relation != "LT" && relation != "GT" && relation != "EQ"){
@@ -610,9 +819,14 @@ function watchTemperature(recipeIDNum){
 				if(!err){
 					// Gets the current temperature from response
 					var parsedbody = JSON.parse(body);
-					var currentTemp = parsedbody.current_observation.temp_f;
-					console.log("current temp: " + currentTemp);
-			
+					var currentTemp;
+					if () {
+						currentTemp = parsedbody.current_observation.temp_f;
+						console.log("current temp: " + currentTemp);
+					} else {
+						currentTemp = parsedbody.current_observation.temp_c;
+						console.log("current temp: " + currentTemp);
+					}
 					// Does the appropriate comparison depending on the relation and stores a boolean
 					// value in noise
 					if (relation == "LT") {
@@ -889,6 +1103,7 @@ function todaysWeather(recipeIDNum) {
 			var state = data.recipe.trigger.state;
 			var relation = data.recipe.trigger.relation;
 			var callback = data.recipe.callbackURL;
+			var type = data.recipe.trigger.type;
 	
 			// validates relation
 			if(relation != "curForecast" ){
@@ -908,7 +1123,12 @@ function todaysWeather(recipeIDNum) {
 				if(!err){
 					// Gets todays weather forecast
 					var parsedbody = JSON.parse(body);
-					var curWeather = parsedbody.forecast.txt_forecast.forecastday[0].fcttext;
+					var curWeather;
+					if (type == "US") {
+						curWeather = parsedbody.forecast.txt_forecast.forecastday[0].fcttext;
+					} else {
+						curWeather = parsedbody.forecast.txt_forecast.forecastday[0].fcttext_metric;
+					}
 					//Always sets off trigger
 					console.log(curWeather);
 					console.log("Target hit, calling callback URL...");
@@ -944,6 +1164,7 @@ function tomWeather(recipeIDNum) {
 			var state = data.recipe.trigger.state;
 			var relation = data.recipe.trigger.relation;
 			var callback = data.recipe.callbackURL;
+			var type = data.recipe.trigger.type;
 	
 			// validates relation
 			if(relation != "tomForecast" ){
@@ -963,7 +1184,12 @@ function tomWeather(recipeIDNum) {
 				if(!err){
 					// Gets tomorrows weather forecast
 					var parsedbody = JSON.parse(body);
-					var tomWeather = parsedbody.forecast.txt_forecast.forecastday[2].fcttext;
+					var tomWeather;
+					if (type == "US") {
+						tomWeather = parsedbody.forecast.txt_forecast.forecastday[2].fcttext;
+					} else {
+						tomWeather = parsedbody.forecast.txt_forecast.forecastday[2].fcttext_metric;
+					}
 					//Always sets off trigger
 					console.log(tomWeather);
 					console.log("Target hit, calling callback URL...");
@@ -1000,6 +1226,7 @@ function tomHighTemp(recipeIDNum) {
 			var relation = data.recipe.trigger.relation;
 			var callback = data.recipe.callbackURL;
 			var temp = data.recipe.trigger.temperature;
+			var type = data.recipe.trigger.tempType;
 	
 			// validates relation
 			if(relation != "tomHtemp" ){
@@ -1017,9 +1244,14 @@ function tomHighTemp(recipeIDNum) {
 			// for the wanted information and does the comparison
 			request(requestURL, function(err, response, body){
 				if(!err){
-					// Gets tomorrows weather forecast
+					// Gets tomorrows weather 
 					var parsedbody = JSON.parse(body);
-					var tomHigh = parsedbody.forecast.simpleforecast.forecastday[1].high.fahrenheit;
+					var tomHigh;
+					if (type == "F") {
+						tomHigh = parsedbody.forecast.simpleforecast.forecastday[1].high.fahrenheit;
+					} else {
+						tomHigh = parsedbody.forecast.simpleforecast.forecastday[1].high.celsius;
+					}
 					// If tomorrows High > x than set off trigger
 					if (temp < tomHigh) {
 						console.log("Target hit, calling callback URL...");
@@ -1057,6 +1289,7 @@ function tomLowTemp(recipeIDNum) {
 			var relation = data.recipe.trigger.relation;
 			var callback = data.recipe.callbackURL;
 			var temp = data.recipe.trigger.temperature;
+			var type = data.recipe.trigger.tempType;
 	
 			// validates relation
 			if(relation != "tomLtemp" ){
@@ -1076,7 +1309,12 @@ function tomLowTemp(recipeIDNum) {
 				if(!err){
 					// Gets tomorrows weather forecast
 					var parsedbody = JSON.parse(body);
-					var tomLow = parsedbody.forecast.simpleforecast.forecastday[1].low.fahrenheit;
+					var tomLow;
+					if (type == "F") {
+						tomLow = parsedbody.forecast.simpleforecast.forecastday[1].low.fahrenheit;
+					} else {
+						tomLow = parsedbody.forecast.simpleforecast.forecastday[1].low.celsius;
+					}
 					// If tomorrows Low < x than set off trigger
 					if (temp > tomLow) {
 						console.log("Target hit, calling callback URL...");
@@ -1099,5 +1337,247 @@ function tomLowTemp(recipeIDNum) {
 		}
 	});
 }
+
+// Takes recipe out of database with database key recipeIDnum and sends a get request to
+// api and potentially sets off a trigger
+function todayWind(recipeIDNum) {
+	// gets recipe from database from the key recipeIDNum
+	recipesDB.get(recipeIDNum, function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			var city = data.recipe.trigger.city;
+			var state = data.recipe.trigger.state;
+			var relation = data.recipe.trigger.relation;
+			var callback = data.recipe.callbackURL;
+			var windSpeed = data.recipe.trigger.wind;
+			var type = data.recipe.trigger.type;
+	
+			// validates relation
+			if(relation != "todWind" ){
+				console.log("invalid comparison signal");
+				return;
+			}
+
+			// Sets ups request from weather api
+			requestURL = "http://api.wunderground.com/api/"
+			requestURL += weatherAPIKey + "/forecast10day/q/"
+			requestURL += state + "/" + city + ".json";
+			// console.log(requestURL);
+
+			// sends the request to the weather api and parses through the response 
+			// for the wanted information and does the comparison
+			request(requestURL, function(err, response, body){
+				if(!err){
+					// Gets tomorrows weather forecast
+					var parsedbody = JSON.parse(body);
+					var maxWind;
+					if (type == "US") {
+						maxWind = parsedbody.forecast.simpleforecast.forecastday[1].maxwind.mph;
+					} else {
+						maxWind = parsedbody.forecast.simpleforecast.forecastday[1].maxwind.kph;
+					}
+					//direction is "".maxwind.dir if needed;
+					// If tomorrows Low < x than set off trigger
+					if (maxWind > windSpeed) {
+						console.log("Target hit, calling callback URL...");
+						callback += recipeIDNum;
+						request(callback, function(err, response, body){
+							if(!err){
+								console.log("successfully sent trigger, response body:");
+								console.log(body);
+							}else{
+								console.log(response);
+								throw err;
+							}
+						});
+					}
+				} else {
+					console.log(response);
+					throw err;
+				}
+			});
+		}
+	});
+}
+
+// Takes recipe out of database with database key recipeIDnum and sends a get request to
+// api and potentially sets off a trigger
+function todayHumid(recipeIDNum) {
+	// gets recipe from database from the key recipeIDNum
+	recipesDB.get(recipeIDNum, function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			var city = data.recipe.trigger.city;
+			var state = data.recipe.trigger.state;
+			var relation = data.recipe.trigger.relation;
+			var callback = data.recipe.callbackURL;
+			var humid = data.recipe.trigger.humidity;
+	
+			// validates relation
+			if(relation != "todHumid" ){
+				console.log("invalid comparison signal");
+				return;
+			}
+
+			// Sets ups request from weather api
+			requestURL = "http://api.wunderground.com/api/"
+			requestURL += weatherAPIKey + "/forecast10day/q/"
+			requestURL += state + "/" + city + ".json";
+			// console.log(requestURL);
+
+			// sends the request to the weather api and parses through the response 
+			// for the wanted information and does the comparison
+			request(requestURL, function(err, response, body){
+				if(!err){
+					// Gets tomorrows weather forecast
+					var parsedbody = JSON.parse(body);
+					var maxHumid = parsedbody.forecast.simpleforecast.forecastday[1].maxhumidity;
+					//var tomLow = parsedbody.forecast.simpleforecast.forecastday[1].maxwind.mph;
+					// If tomorrows Low < x than set off trigger
+					if (maxHumid > humid) {
+						console.log("Target hit, calling callback URL...");
+						callback += recipeIDNum;
+						request(callback, function(err, response, body){
+							if(!err){
+								console.log("successfully sent trigger, response body:");
+								console.log(body);
+							}else{
+								console.log(response);
+								throw err;
+							}
+						});
+					}
+				} else {
+					console.log(response);
+					throw err;
+				}
+			});
+		}
+	});
+}
+
+// Takes recipe out of database with database key recipeIDnum and sends a get request to
+// api and potentially sets off a trigger
+function todayUV(recipeIDNum) {
+	// gets recipe from database from the key recipeIDNum
+	recipesDB.get(recipeIDNum, function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			var city = data.recipe.trigger.city;
+			var state = data.recipe.trigger.state;
+			var relation = data.recipe.trigger.relation;
+			var callback = data.recipe.callbackURL;
+			var uv = data.recipe.trigger.UV;
+	
+			// validates relation
+			if(relation != "todUV" ){
+				console.log("invalid comparison signal");
+				return;
+			}
+
+			// Sets ups request from weather api
+			requestURL = "http://api.wunderground.com/api/"
+			requestURL += weatherAPIKey + "/conditions/q/"
+			requestURL += state + "/" + city + ".json";
+			// console.log(requestURL);
+
+			// sends the request to the weather api and parses through the response 
+			// for the wanted information and does the comparison
+			request(requestURL, function(err, response, body){
+				if(!err){
+					// Gets tomorrows weather forecast
+					var parsedbody = JSON.parse(body);
+					var curUV = parsedbody.current_observation.UV;
+					// If tomorrows Low < x than set off trigger
+					console.log(curUV);
+					if (curUV > uv) {
+						console.log("Target hit, calling callback URL...");
+						callback += recipeIDNum;
+						request(callback, function(err, response, body){
+							if(!err){
+								console.log("successfully sent trigger, response body:");
+								console.log(body);
+							}else{
+								console.log(response);
+								throw err;
+							}
+						});
+					}
+				} else {
+					console.log(response);
+					throw err;
+				}
+			});
+		}
+	});
+}
+
+// Takes recipe out of database with database key recipeIDnum and sends a get request to
+// api and potentially sets off a trigger
+function todaySun(recipeIDNum) {
+	// gets recipe from database from the key recipeIDNum
+	recipesDB.get(recipeIDNum, function(err, data) {
+		if (err) {
+			throw err;
+		} else {
+			// gets all of the variables from DB data
+			var city = data.recipe.trigger.city;
+			var state = data.recipe.trigger.state;
+			var relation = data.recipe.trigger.relation;
+			var callback = data.recipe.callbackURL;
+	
+			// validates relation
+			if(relation != "todSunrise" && relation != "todSunset"){
+				console.log("invalid comparison signal");
+				return;
+			}
+
+			// Sets ups request from weather api
+			requestURL = "http://api.wunderground.com/api/"
+			requestURL += weatherAPIKey + "/astronomy/q/"
+			requestURL += state + "/" + city + ".json";
+			// console.log(requestURL);
+			
+			// sends the request to the weather api and parses through the response 
+			// for the wanted information and does the comparison
+			request(requestURL, function(err, response, body){
+				if(!err){
+					// Gets todays sunrise or sunset
+					var parsedbody = JSON.parse(body);
+					var todaySunHour;
+					var todaySunMin;
+					if ("todSunrise" == relation) {
+						todaySunHour = parsedbody.moon_phase.sunrise.hour;
+						todaySunMin = parsedbody.moon_phase.sunrise.minute;
+					} else {
+						todaySunHour = parsedbody.moon_phase.sunset.hour;
+						todaySunMin = parsedbody.moon_phase.sunset.minute;
+					}
+					console.log("Target hit, calling callback URL...");
+					callback += recipeIDNum;
+					request(callback, function(err, response, body){
+						if(!err){
+							console.log("successfully sent trigger, response body:");
+							console.log(body);
+						}else{
+							console.log(response);
+							throw err;
+						}
+					});
+				} else {
+					console.log(response);
+					throw err;
+				}
+			});
+		}
+	});
+}
+
 
 app.listen(port);
