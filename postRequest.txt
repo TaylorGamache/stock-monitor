@@ -1,4 +1,4 @@
-curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"name": "name","trigger": {"trig_type": "trigtType","trig_opts": {"email":"trigEmail","opt_type": "trigType","rss_url": "rssUrl","rss_last_date_published": "rssLastPub"}},"action": {"act_type":"actType","act_opts": {"email": "actEmail","opt_type": "actType"}}}}' http://localhost:3000/recipes
+﻿curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"name": "name","trigger": {"trig_type": "trigtType","trig_opts": {"email":"trigEmail","opt_type": "trigType","rss_url": "rssUrl","rss_last_date_published": "rssLastPub"}},"action": {"act_type":"actType","act_opts": {"email": "actEmail","opt_type": "actType"}}}}' http://localhost:3000/recipes
 
 curl -H "Content-Type: application/json" -X POST -d '{"user":"luke"}' http://localhost:3000/recipes
 
@@ -10,8 +10,45 @@ curl -H “Accept: application/json” -H “Content-Type: application/json” -
 
 POST RECIPE TO OUR DB:
 
-curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"recipeID": "string", "callbackURL": "string", "trigger":{"temperature": 200,    "scale": "string",  "city":"Storrs", "state":"CT", "relation": "LT"}}}' http://localhost:3000/recipes
+// For local host
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":32, "tempType":"F", "city":"Storrs","state":"CT", "relation":"GT"}}}' http://localhost:3000/recipes
 
 
+// For bluemix host
 
-curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe": {"recipeID": "string", "callbackURL": "string", "trigger":{"temperature": 200,    "scale": "string",  "city":"Storrs", "state":"CT", "relation": "LT"}}}' http://onit.bluemix.net/recipes
+// watch temperature
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":32, "tempType":"F", "city":"Storrs","state":"CT", "relation":"GT"}}}' http://onit.bluemix.net/recipes
+
+// Weather Advisory request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"city":"Storrs","state":"CT", "relation":"Alert"}}}' http://onit.bluemix.net/recipes
+
+// Current Weather request for specific weather conditions
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"weather":"clear","city":"Storrs","state":"CT", "relation":"currentWeather"}}}' http://onit.bluemix.net/recipes
+	
+// Current Weather request for change in weather conditions
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"city":"Storrs","state":"CT", "relation":"weatherChange"}}}' http://onit.bluemix.net/recipes
+	
+// Current Weather forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"type": "US","city":"Storrs","state":"CT", "relation":"curForecast"}}}' http://onit.bluemix.net/recipes
+	
+// Tomorrows Weather forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"type": "US", "city":"Storrs","state":"CT", "relation":"tomForecast"}}}' http://onit.bluemix.net/recipes
+	
+// Todays max humidity forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"humidity":90, "city":"Storrs","state":"CT", "relation":"todHumid"}}}' http://onit.bluemix.net/recipes
+	
+// Todays max wind forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"wind":90, "type":"US", "city":"Storrs","state":"CT", "relation":"todWind"}}}' http://onit.bluemix.net/recipes
+	
+// Current UV request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"UV":10, "city":"Storrs","state":"CT", "relation":"todUV"}}}' http://onit.bluemix.net/recipes
+
+// Tomorrows Low temp forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":90, "tempType":"F", "city":"Storrs","state":"CT", "relation":"tomLtemp"}}}' http://onit.bluemix.net/recipes
+
+// Tomorrows High temp forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{"temperature":0, "tempType":"F", "city":"Storrs","state":"CT", "relation":"tomHtemp"}}}' http://onit.bluemix.net/recipes
+
+// Todays sunrise/sunset forecast request
+curl -H "Accept: application/json" -H "Content-Type: application/json" -X POST -d '{"recipe":{"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/", "trigger":{ "city":"Storrs","state":"CT", "relation":"todSunrise"}}}' http://onit.bluemix.net/recipes
+	
