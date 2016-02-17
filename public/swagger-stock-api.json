@@ -1,36 +1,37 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Date & Time Monitor API",
-        "description": "Date and Time Monitoring Service",
+        "title": "Stock Monitor API",
+        "description": "Stock Monitoring Service",
         "version": "1.0.0"
     },
     "host": "localhost:3000",
     "schemes": [
         "https"
     ],
-    "basePath": "/api/v1",
+    "basePath": "/recipes",
     "produces": [
         "application/json"
     ],
     "paths": {
-        "/temperature": {
-            "post": {
-              "summary": "Add/Update a timer",
-              "description": "This endpoint is used to add a timers for Date & Time monitoring service",
+			
+		"/stockTrigger": {
+		      "post": {
+              "summary": "Add a new stock recipe",
+              "description": "This endpoint is used to add a new recipe with a stock trigger for the stock monitoring service",
                 "parameters": [
                     {
-                        "name": "timer",
+                        "name": "Recipe with Stock Trigger",
                         "in": "body",
-                        "description": "Timer JSON to be created",
+                        "description": " JSON to be created",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Temperature"
+                            "$ref": "#/definitions/newSRecipe"
                         }
                     }
                 ],
                 "tags": [
-                    "Timer"
+                    "stock"
                 ],
                 "responses": {
                     "200": {
@@ -48,21 +49,23 @@
                 }
             }
         },
-        "/timers/:recipeidd": {
+
+        "/recipes/:recipeid": {
             "delete": {
-                "summary": "Delete a timer",
-                "description": "This endpoint deletes a timer matching the recipeID",
+              "summary": "Delete a specific recipe",
+              "description": "This endpoint is used to delete any recipe for this service",
                 "parameters": [
                     {
                         "name": "recipeID",
-                        "in": "path",
-                        "description": "Unique identifier of a recipe/timer",
+                        "description": " Unique recipe identifier",
                         "required": true,
-                        "type": "string"
+                        "schema": {
+                            "$ref": "#/definitions/Delete"
+                        }
                     }
                 ],
                 "tags": [
-                    "Timer"
+                    "Recipes"
                 ],
                 "responses": {
                     "200": {
@@ -82,38 +85,63 @@
         }
     },
     "definitions": {
-        "Temperature": {
+        "Delete": {
             "properties": {
                 "recipeID": {
                     "type": "string",
-                    "description": "Unique identifier representing a specific recipe/timer"
-                },
-                "callbackURL": {
-                    "type": "string",
-                    "description": "Callback URL to call when scheduled time is up"
-                },
-                "trigger": {
-                    "description": "List of trigger specifications",
-                    "$ref": "#/definitions/Trigger"
+                    "description": "Unique identifier representing a specific" 
                 }
             }
         },
-        "Trigger": {
+        "sTrigger": {
             "properties": {
-                "temperature": {
+                "watchNum": {
                     "type": "integer",
-                    "description": "Temperature to watch"
+                    "description": "Value to watch for if the relations calls for it."
                 },
-                "scale": {
+                "symbol": {
                     "type": "string",
-                    "description": "C or F (celsius or fahrenheit)"
+                    "description": "Symbol of stock.",
+					"required": true
+                },
+				"market": {
+                    "type": "string",
+                    "description": "The market the stock is in.",
+					"required": true
                 },
                 "relation": {
                     "type": "string",
-                    "description": "What to trigger (GT, LT, EQ, NEQ, GEQ, LEQ"
-                }
+                    "description": "Type of stock trigger (stockGT, stockLT, stockPerInc, stockPerDec, closePrice)",
+					"required": true
+                },
+				"inThreshold": {
+					"type": "boolean",
+					"description": "Always set to false. Used for limiting the amount of times a recipe can trigger."
+				}
             }
         },
+		
+		"newSRecipe": {
+			"properties": {
+				"recipe": {
+				    "required": true,
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/sRecipe"
+				}
+			}
+		},
+	    "sRecipe": {
+            "properties": {
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when the trigger gets hit."
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/sTrigger"
+                }
+            }
+        },		
         "Success": {
             "properties": {
                 "success": {
@@ -124,9 +152,9 @@
                     "type": "string",
                     "description": "Success or error message"
                 },
-                "timer": {
-                    "description": "Timer object returned",
-                    "$ref": "#/definitions/Timer"
+                "recipe": {
+                    "description": "Recipe with weather trigger object returned",
+                    "$ref": "#/definitions/newRecipe"
                 }
             }
         },
