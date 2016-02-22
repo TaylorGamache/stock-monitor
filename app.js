@@ -4,9 +4,11 @@ var bodyParser = require("body-parser");
 var express = require('express');
 var request = require('request');
 var Cloudant = require('cloudant');
+var Config = require('config-js');
 var json = require('json');
-var me = 'lukebelliveau';
-var password = 'weathermonitor';
+var config = new Config('./stock_config.js');
+var me = config.get('CLOUDANT_USERNAME');
+var password = config.get('CLOUDANT_PW');
 var triggerCallback = "http://nsds-api-stage.mybluemix.net/api/v1/trigger/";
 var cron = require('cron');
 
