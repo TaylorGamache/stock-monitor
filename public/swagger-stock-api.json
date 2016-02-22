@@ -7,31 +7,30 @@
     },
     "host": "localhost:3000",
     "schemes": [
-        "https"
+        "http"
     ],
-    "basePath": "/recipes",
+    "basePath": "/api/v1",
     "produces": [
         "application/json"
     ],
     "paths": {
-			
-		"/stockTrigger": {
-		      "post": {
-              "summary": "Add a new stock recipe",
-              "description": "This endpoint is used to add a new recipe with a stock trigger for the stock monitoring service",
+        "/stock": {
+            "post": {
+              "summary": "Add/Update a stock trigger",
+              "description": "This endpoint is used to add a stock trigger for the stock monitoring service",
                 "parameters": [
                     {
-                        "name": "Recipe with Stock Trigger",
+                        "name": "stock trigger",
                         "in": "body",
-                        "description": " JSON to be created",
+                        "description": "Stock trigger JSON to be created",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/newSRecipe"
+                            "$ref": "#/definitions/Stock"
                         }
                     }
                 ],
                 "tags": [
-                    "stock"
+                    "Stock"
                 ],
                 "responses": {
                     "200": {
@@ -49,23 +48,21 @@
                 }
             }
         },
-
-        "/recipes/:recipeid": {
+        "/stock/:recipeid": {
             "delete": {
-              "summary": "Delete a specific recipe",
-              "description": "This endpoint is used to delete any recipe for this service",
+                "summary": "Delete a stock trigger",
+                "description": "This endpoint deletes a stock trigger matching the recipeID",
                 "parameters": [
                     {
                         "name": "recipeID",
-                        "description": " Unique recipe identifier",
+                        "in": "path",
+                        "description": "Unique identifier of a recipe/stock trigger",
                         "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/Delete"
-                        }
+                        "type": "string"
                     }
                 ],
                 "tags": [
-                    "Recipes"
+                    "Stock"
                 ],
                 "responses": {
                     "200": {
@@ -85,15 +82,23 @@
         }
     },
     "definitions": {
-        "Delete": {
+        "Stock": {
             "properties": {
                 "recipeID": {
                     "type": "string",
-                    "description": "Unique identifier representing a specific" 
+                    "description": "Unique identifier representing a specific recipe/stock trigger"
+                },
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when scheduled time is up"
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/Trigger"
                 }
             }
         },
-        "sTrigger": {
+        "Trigger": {
             "properties": {
                 "watchNum": {
                     "type": "integer",
@@ -120,28 +125,7 @@
 				}
             }
         },
-		
-		"newSRecipe": {
-			"properties": {
-				"recipe": {
-				    "required": true,
-                    "description": "List of trigger specifications",
-                    "$ref": "#/definitions/sRecipe"
-				}
-			}
-		},
-	    "sRecipe": {
-            "properties": {
-                "callbackURL": {
-                    "type": "string",
-                    "description": "Callback URL to call when the trigger gets hit."
-                },
-                "trigger": {
-                    "description": "List of trigger specifications",
-                    "$ref": "#/definitions/sTrigger"
-                }
-            }
-        },		
+
         "Success": {
             "properties": {
                 "success": {
@@ -152,9 +136,9 @@
                     "type": "string",
                     "description": "Success or error message"
                 },
-                "recipe": {
-                    "description": "Recipe with weather trigger object returned",
-                    "$ref": "#/definitions/newRecipe"
+                "stock": {
+                    "description": "Stock object returned",
+                    "$ref": "#/definitions/Stock"
                 }
             }
         },
@@ -170,3 +154,6 @@
         }
     }
 }
+
+
+

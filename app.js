@@ -96,7 +96,7 @@ app.delete('/recipes/:recipeid', function(req, res){
 	response['message'] = "Recipe added to DB.";
 });*/
 
-app.post('/recipes/stockTrigger', function(req, res){
+app.post('/api/v1/stock', function(req, res){
 	console.log("stockRecipe hit");
 
 	var request = req.body;
