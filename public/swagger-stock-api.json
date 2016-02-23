@@ -14,18 +14,154 @@
         "application/json"
     ],
     "paths": {
-        "/stock": {
+        "/stock/priceGT": {
             "post": {
-              "summary": "Add/Update a stock trigger",
+              "summary": "Add/Update a stock trigger that monitors if a stock price rise above a value",
               "description": "This endpoint is used to add a stock trigger for the stock monitoring service",
                 "parameters": [
                     {
-                        "name": "stock trigger",
+                        "name": "stock trigger for watching a stock price",
                         "in": "body",
                         "description": "Stock trigger JSON to be created",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Stock"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "$ref": "#/definitions/Success"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+		"/stock/priceLT": {
+            "post": {
+              "summary": "Add/Update a stock trigger that monitors if a stock price goes below a value",
+              "description": "This endpoint is used to add a stock trigger for the stock monitoring service",
+                "parameters": [
+                    {
+                        "name": "stock trigger for watching a stock price",
+                        "in": "body",
+                        "description": "Stock trigger JSON to be created",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ltStock"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "$ref": "#/definitions/Success"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+		"/stock/percentInc": {
+            "post": {
+              "summary": "Add/Update a stock trigger that monitors if a stock percent increase rises above a value",
+              "description": "This endpoint is used to add a stock trigger for the stock monitoring service",
+                "parameters": [
+                    {
+                        "name": "stock trigger for watching a stock percent increase",
+                        "in": "body",
+                        "description": "Stock trigger JSON to be created",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/piStock"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "$ref": "#/definitions/Success"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+		"/stock/percentDec": {
+            "post": {
+              "summary": "Add/Update a stock trigger that monitors if a stock percent increase goes below a value",
+              "description": "This endpoint is used to add a stock trigger for the stock monitoring service",
+                "parameters": [
+                    {
+                        "name": "stock trigger for watching a stock percent increase",
+                        "in": "body",
+                        "description": "Stock trigger JSON to be created",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pdStock"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "$ref": "#/definitions/Success"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+		"/stock/closePrice": {
+            "post": {
+              "summary": "Add/Update a stock trigger for closing price",
+              "description": "This endpoint is used to add a stock trigger for the stock monitoring service",
+                "parameters": [
+                    {
+                        "name": "stock trigger for closing price",
+                        "in": "body",
+                        "description": "Stock trigger JSON to be created",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cpStock"
                         }
                     }
                 ],
@@ -116,13 +252,177 @@
                 },
                 "relation": {
                     "type": "string",
-                    "description": "Type of stock trigger (stockGT, stockLT, stockPerInc, stockPerDec, closePrice)",
+                    "description": "Type of stock trigger (stockGT)",
 					"required": true
                 },
 				"inThreshold": {
 					"type": "boolean",
 					"description": "Always set to false. Used for limiting the amount of times a recipe can trigger."
 				}
+            }
+        },
+		"ltStock": {
+            "properties": {
+                "recipeID": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific recipe/stock trigger"
+                },
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when scheduled time is up"
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/ltTrigger"
+                }
+            }
+        },
+        "ltTrigger": {
+            "properties": {
+                "watchNum": {
+                    "type": "integer",
+                    "description": "Value to watch for if the relations calls for it."
+                },
+                "symbol": {
+                    "type": "string",
+                    "description": "Symbol of stock.",
+					"required": true
+                },
+				"market": {
+                    "type": "string",
+                    "description": "The market the stock is in.",
+					"required": true
+                },
+                "relation": {
+                    "type": "string",
+                    "description": "Type of stock trigger (stockLT)",
+					"required": true
+                },
+				"inThreshold": {
+					"type": "boolean",
+					"description": "Always set to false. Used for limiting the amount of times a recipe can trigger."
+				}
+            }
+        },
+		"piStock": {
+            "properties": {
+                "recipeID": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific recipe/stock trigger"
+                },
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when scheduled time is up"
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/piTrigger"
+                }
+            }
+        },
+        "piTrigger": {
+            "properties": {
+                "watchNum": {
+                    "type": "integer",
+                    "description": "Value to watch for if the relations calls for it."
+                },
+                "symbol": {
+                    "type": "string",
+                    "description": "Symbol of stock.",
+					"required": true
+                },
+				"market": {
+                    "type": "string",
+                    "description": "The market the stock is in.",
+					"required": true
+                },
+                "relation": {
+                    "type": "string",
+                    "description": "Type of stock trigger (stockPerInc)",
+					"required": true
+                },
+				"inThreshold": {
+					"type": "boolean",
+					"description": "Always set to false. Used for limiting the amount of times a recipe can trigger."
+				}
+            }
+        },
+        "pdStock": {
+            "properties": {
+                "recipeID": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific recipe/stock trigger"
+                },
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when scheduled time is up"
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/pdTrigger"
+                }
+            }
+        },
+        "pdTrigger": {
+            "properties": {
+                "watchNum": {
+                    "type": "integer",
+                    "description": "Value to watch for if the relations calls for it."
+                },
+                "symbol": {
+                    "type": "string",
+                    "description": "Symbol of stock.",
+					"required": true
+                },
+				"market": {
+                    "type": "string",
+                    "description": "The market the stock is in.",
+					"required": true
+                },
+                "relation": {
+                    "type": "string",
+                    "description": "Type of stock trigger (stockPerDec)",
+					"required": true
+                },
+				"inThreshold": {
+					"type": "boolean",
+					"description": "Always set to false. Used for limiting the amount of times a recipe can trigger."
+				}
+            }
+        },
+		 "cpStock": {
+            "properties": {
+                "recipeID": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific recipe/stock trigger"
+                },
+                "callbackURL": {
+                    "type": "string",
+                    "description": "Callback URL to call when scheduled time is up"
+                },
+                "trigger": {
+                    "description": "List of trigger specifications",
+                    "$ref": "#/definitions/cpTrigger"
+                }
+            }
+        },
+        "cpTrigger": {
+            "properties": {
+                "symbol": {
+                    "type": "string",
+                    "description": "Symbol of stock.",
+					"required": true
+                },
+				"market": {
+                    "type": "string",
+                    "description": "The market the stock is in.",
+					"required": true
+                },
+                "relation": {
+                    "type": "string",
+                    "description": "Type of stock trigger (closePrice)",
+					"required": true
+                }
             }
         },
 

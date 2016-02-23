@@ -88,17 +88,24 @@ app.get('/MakeAndWatchDemo', function(req, res) {
 		}
 	})	
 });
-/*
-app.delete('/recipes/:recipeid', function(req, res){
+
+app.delete('/api/v1/stock/:recipeid/', function(req, res){
 	console.log("stockRecipe delete hit");
 
-	var request = req.body;
+	var request = req.params.recipeid;
 	
-	response['success'] = true;
-	response['message'] = "Recipe added to DB.";
-});*/
+	console.log(request);
+	/*db.destroy(del_ID, function(err, body, header) {
+		var response = {};
+		if (!err) {
+			response['success'] = true;
+			response['message'] = "Recipe deleted from DB.";
+			console.log("Successfully deleted doc", docUniqueId);
+		}
+	});*/
+});
 
-app.post('/api/v1/stock', function(req, res){
+app.post('/api/v1/stock/*', function(req, res){
 	console.log("stockRecipe hit");
 
 	var request = req.body;
@@ -157,6 +164,7 @@ WATCH STOCK FUNCTIONS
 
 // For watching if a stock price goes above or below a number
 function watchStock(recipeIDNum){
+	console.log("\n"+recipeIDNum+"\n");
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
@@ -173,10 +181,7 @@ function watchStock(recipeIDNum){
 				if(!err){
 					console.log("successful response from stock API!");
 					// var parsedbody = JSON.parse(body);
-					console.log(body);
 					var parsedbody = JSON.parse(body);
-					console.log("printed full body")
-					console.log(parsedbody.Symbol);
 					var stockPrice = parsedbody.LastPrice;
 
 					if(data.trigger.relation === "stockGT"){
@@ -259,10 +264,7 @@ function watchStockPercent(recipeIDNum){
 			request(requestURL, function(err, response, body){
 				if(!err){
 					console.log("successful response from stock API!");
-					console.log(body);
 					var parsedbody = JSON.parse(body);
-					console.log("printed full body")
-					console.log(parsedbody.Symbol);
 					var changePercent = parsedbody.ChangePercent;
 
 					if(data.trigger.relation === "stockPerInc"){
@@ -341,10 +343,7 @@ function stockClosing(recipeIDNum){
 			request(requestURL, function(err, response, body){
 				if(!err){
 					console.log("successful response from stock API!");
-					console.log(body);
 					var parsedbody = JSON.parse(body);
-					console.log("printed full body")
-					console.log(parsedbody.Symbol);
 					var closing = parsedbody.LastPrice;
 
 					if(data.trigger.relation === "closePrice"){
@@ -375,10 +374,7 @@ function exReport(recipeIDNum){
 			request(requestURL, function(err, response, body){
 				if(!err){
 					console.log("successful response from stock API!");
-					console.log(body);
 					var parsedbody = JSON.parse(body);
-					console.log("printed full body")
-					console.log(parsedbody.Symbol);
 					var closing = parsedbody.LastPrice;
 
 					if(data.trigger.relation === "ExchangeReport"){
