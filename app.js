@@ -56,9 +56,7 @@ app.post('/api/v1/stock/*', function(req, res){
 			res.send("Error adding recipe.");
 		}else{
 			var idNum = body.id;
-			response['success'] = true;
-			response['message'] = "Recipe added to DB.";
-			res.status(200).json(response);
+			res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
 			// gets the relation of the trigger
 			var relation = request.trigger.relation;
 			
