@@ -17,7 +17,6 @@ var app = express();
 var cloudant = Cloudant({account:me, password:password});
 
 // lists all the databases on console
-
 cloudant.db.list(function(err, allDbs){
 	console.log("my dbs: %s", allDbs.join(','))
 });
@@ -29,65 +28,6 @@ app.use(bodyParser.json());
 // app.use(express.json());
 app.use(express.static(__dirname + '/public'));
 
-
-//Tests all watch functions for current recipe without using curl and stores new recipe in DB
-app.get('/MakeAndWatchDemo', function(req, res) {
-	res.send("Stock Demo Test Page");
-	console.log("The Make and Watch Stock Demo.");
-
-	/***    STOCK RECIPES    ***/
-	// watch a Stock price
-	var request = {"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/","trigger":{"symbol":"IBM","market":"NYSE","watchNum":100,"relation":"stockGT","inThreshold":false}};
-	
-	// watch a Stock's percent change 
-	// var request = {"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/","trigger":{"symbol":"IBM","market":"NYSE","watchNum":15,"relation":"stockPerInc","inThreshold":false}};
-	
-	// watch a Stock at closing
-	// var request = {"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/","trigger":{"symbol":"IBM","market":"NYSE","watchNum":0,"relation":"closePrice","inThreshold":false}};
-	
-	// NOT IMPLEMENTED YET
-	// watch a the exchange rate report at a time
-	// var request = {"callbackURL":"http://nsds-api-stage.mybluemix.net/api/v1/trigger/","trigger":{"time":"12:00","currency1":"none","currency2":"none","relation":"ExchangeReport"}};
-	
-	recipesDB.insert(request, function(err, body, header){
-		var response = {};
-		if(err){
-			res.send("Error adding recipe.");
-		}else{
-			var idNum = body.id;
-			var relation = request.trigger.relation;
-			//sets up if recipe is calling for temperature monitoring
-			if (relation == "stockLT" || relation == "stockGT") {
-				// Runs every hour
-				//var cronJob = cron.job("0 0 */1 * * *", function(){
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					watchStock(idNum);
-				});
-				cronJob.start();
-			} else if (relation == "stockPerInc" || relation == "stockPerDec") {
-				// Runs every hour
-				//var cronJob = cron.job("0 0 */1 * * *", function(){
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					watchStockPercent(idNum);
-				});
-				cronJob.start();
-			} else if (relation == "closePrice") {
-				// Runs every day at 4
-				//var cronJob = cron.job("0 0 4 */1 * *", function(){
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					stockClosing(idNum);
-				});
-				cronJob.start();
-			} else if (relation == "ExchangeReport") {
-				// Runs every minute
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					exReport(idNum);
-				});
-				cronJob.start();
-			}		
-		}
-	})	
-});
 
 app.delete('/api/v1/stock/:recipeid/', function(req, res){
 	console.log("stockRecipe delete hit");
