@@ -32,9 +32,9 @@ app.use(express.static(__dirname + '/public'));
 app.delete('/api/v1/stock/:recipeid/', function(req, res){
 	console.log("stockRecipe delete hit");
 
-	var request = req.params.recipeid;
+	var del_ID = req.params.recipeid;
 	
-	console.log(request);
+	console.log(del_ID);
 	/*db.destroy(del_ID, function(err, body, header) {
 		var response = {};
 		if (!err) {
