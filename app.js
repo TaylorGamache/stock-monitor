@@ -29,60 +29,242 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
 
 
-app.delete('/api/v1/stock/:recipeid/', function(req, res){
+app.delete('/api/v1/stock/:recipeid', function(req, res){
 	console.log("stockRecipe delete hit");
-
 	var del_ID = req.params.recipeid;
-	
 	console.log(del_ID);
-	/*db.destroy(del_ID, function(err, body, header) {
-		var response = {};
-		if (!err) {
-			response['success'] = true;
-			response['message'] = "Recipe deleted from DB.";
-			console.log("Successfully deleted doc", docUniqueId);
+	
+	recipesDB.get(del_ID, function(err, data){
+		if(err){
+			res.json({success: false, msg: 'Failed to find the recipe in the database, please try again.'});
+		} else {
+			var rev = data._rev;
+			recipesDB.destroy(del_ID, rev,  function(err) {
+				if (!err) {
+					res.json({success: true, msg: 'Successfully deleted the stock recipe from the database.'});
+					console.log("Successfully deleted doc"+ del_ID);
+				} else {
+					res.json({success: false, msg: 'Failed to delete recipe from the database, please try again.'});
+					//console.log("failed");
+				}
+			});
 		}
-	});*/
+	});
 });
 
-app.post('/api/v1/stock/*', function(req, res){
-	console.log("stockRecipe hit");
+
+app.post('/api/v1/stock/priceGT', function(req, res){
+	console.log("A recipe for watching if a stock goes above a value has been received.");
+	var request = req.body;
+	
+	if(request.callbackURL == "") {
+		res.json({success: false, msg: 'No callbackURL submitted.'});
+	} else if (request.trigger.watchNum == null) {
+		res.json({success: false, msg: 'No watchNum submitted.'});
+	} else if (request.trigger.symbol == "") {
+		res.json({success: false, msg: 'No symbol submitted.'});
+	} else if (request.trigger.market == "") {
+		res.json({success: false, msg: 'No market submitted.'});
+	} else if (request.trigger.relation != "stockGT") {
+		res.json({success: false, msg: 'The relation submitted is not stockGT.'});
+	} else if (request.trigger.inThreshold == null) {
+		res.json({success: false, msg: 'No inThreshold submitted.'});
+	} else {
+
+		recipesDB.insert(request, function(err, body, header){
+			if(err){
+				res.json({success:false, msg:'Error adding recipe.'});
+			}else{
+				var idNum = body.id;
+				res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
+				// gets the relation of the trigger
+				var relation = request.trigger.relation;
+			
+				// determines what stock watch method to use
+				if (relation == "stockGT") {
+					// Runs every hour
+					//var cronJob = cron.job("0 0 */1 * * *", function(){
+					var cronJob = cron.job("0 */1 * * * *", function(){
+						watchStock(idNum);
+					});
+					cronJob.start();
+				} 
+			}
+		})
+	}
+});
+app.post('/api/v1/stock/priceLT', function(req, res){
+	console.log("A recipe for watching if a stock goes below a value has been received.");
+	var request = req.body;
+	
+	if(request.callbackURL == "") {
+		res.json({success: false, msg: 'No callbackURL submitted.'});
+	} else if (request.trigger.watchNum == null) {
+		res.json({success: false, msg: 'No watchNum submitted.'});
+	} else if (request.trigger.symbol == "") {
+		res.json({success: false, msg: 'No symbol submitted.'});
+	} else if (request.trigger.market == "") {
+		res.json({success: false, msg: 'No market submitted.'});
+	} else if (request.trigger.relation != "stockLT") {
+		res.json({success: false, msg: 'The relation submitted is not stockLT.'});
+	} else if (request.trigger.inThreshold == null) {
+		res.json({success: false, msg: 'No inThreshold submitted.'});
+	} else {
+
+		recipesDB.insert(request, function(err, body, header){
+			if(err){
+				res.json({success:false, msg:'Error adding recipe.'});
+			}else{
+				var idNum = body.id;
+				res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
+				// gets the relation of the trigger
+				var relation = request.trigger.relation;
+			
+				// determines what stock watch method to use
+				if (relation == "stockLT") {
+					// Runs every hour
+					//var cronJob = cron.job("0 0 */1 * * *", function(){
+					var cronJob = cron.job("0 */1 * * * *", function(){
+						watchStock(idNum);
+					});
+					cronJob.start();
+				} 
+			}
+		})
+	}
+});
+app.post('/api/v1/stock/percentInc', function(req, res){
+	console.log("A recipe for watching if a stock's percent increase goes above a value has been received.");
+	var request = req.body;
+	
+	if(request.callbackURL == "") {
+		res.json({success: false, msg: 'No callbackURL submitted.'});
+	} else if (request.trigger.watchNum == null) {
+		res.json({success: false, msg: 'No watchNum submitted.'});
+	} else if (request.trigger.symbol == "") {
+		res.json({success: false, msg: 'No symbol submitted.'});
+	} else if (request.trigger.market == "") {
+		res.json({success: false, msg: 'No market submitted.'});
+	} else if (request.trigger.relation != "stockPerInc") {
+		res.json({success: false, msg: 'The relation submitted is not stockPerInc.'});
+	} else if (request.trigger.inThreshold == null) {
+		res.json({success: false, msg: 'No inThreshold submitted.'});
+	} else {
+
+		recipesDB.insert(request, function(err, body, header){
+			if(err){
+				res.json({success:false, msg:'Error adding recipe.'});
+			}else{
+				var idNum = body.id;
+				res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
+				// gets the relation of the trigger
+				var relation = request.trigger.relation;
+			
+				if (relation == "stockPerInc") {
+					// Runs every hour
+					//var cronJob = cron.job("0 0 */1 * * *", function(){
+					var cronJob = cron.job("0 */1 * * * *", function(){
+						watchStockPercent(idNum);
+					});
+					cronJob.start();
+				} 
+			}
+		})
+	}
+});
+
+app.post('/api/v1/stock/percentDec', function(req, res){
+	console.log("A recipe for watching if a stock's percent increase goes below a value has been received.");
+	var request = req.body;
+	
+	if(request.callbackURL == "") {
+		res.json({success: false, msg: 'No callbackURL submitted.'});
+	} else if (request.trigger.watchNum == null) {
+		res.json({success: false, msg: 'No watchNum submitted.'});
+	} else if (request.trigger.symbol == "") {
+		res.json({success: false, msg: 'No symbol submitted.'});
+	} else if (request.trigger.market == "") {
+		res.json({success: false, msg: 'No market submitted.'});
+	} else if (request.trigger.relation != "stockPerDec") {
+		res.json({success: false, msg: 'The relation submitted is not stockPerDec.'});
+	} else if (request.trigger.inThreshold == null) {
+		res.json({success: false, msg: 'No inThreshold submitted.'});
+	} else {
+
+		recipesDB.insert(request, function(err, body, header){
+			if(err){
+				res.json({success:false, msg:'Error adding recipe.'});
+			}else{
+				var idNum = body.id;
+				res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
+				// gets the relation of the trigger
+				var relation = request.trigger.relation;
+			
+				if (relation == "stockPerDec") {
+					// Runs every hour
+					//var cronJob = cron.job("0 0 */1 * * *", function(){
+					var cronJob = cron.job("0 */1 * * * *", function(){
+						watchStockPercent(idNum);
+					});
+					cronJob.start();
+				} 
+			}
+		})
+	}
+});
+
+app.post('/api/v1/stock/closePrice', function(req, res){
+	console.log("A recipe for watching a stock's closing price has been received.");
+	var request = req.body;
+	if(request.callbackURL == "") {
+		res.json({success: false, msg: 'No callbackURL submitted.'});
+	} else if (request.trigger.symbol == "") {
+		res.json({success: false, msg: 'No symbol submitted.'});
+	} else if (request.trigger.market == "") {
+		res.json({success: false, msg: 'No market submitted.'});
+	} else if (request.trigger.relation != "closePrice") {
+		res.json({success: false, msg: 'The relation submitted is not closePrice.'});
+	} else {
+
+		recipesDB.insert(request, function(err, body, header){
+			if(err){
+				res.json({success:false, msg:'Error adding recipe.'});
+			}else{
+				var idNum = body.id;
+				res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
+				// gets the relation of the trigger
+				var relation = request.trigger.relation;
+			
+				if (relation == "closePrice") {
+					// Runs every day at 4
+					//var cronJob = cron.job("0 0 4 */1 * *", function(){
+					var cronJob = cron.job("0 */1 * * * *", function(){
+					stockClosing(idNum);
+				});
+					cronJob.start();
+				} 
+			}
+		})
+	}
+});
+
+
+//DOESN"T GET USED
+app.post('/api/v1/stock/exReport', function(req, res){
+	console.log("A recipe for watching a stock has been received.");
 
 	var request = req.body;
 
 	recipesDB.insert(request, function(err, body, header){
-		var response = {};
 		if(err){
-			res.send("Error adding recipe.");
+			res.json({success:false, msg:'Error adding recipe.'});
 		}else{
 			var idNum = body.id;
 			res.json({success: true, msg: 'Successfully added the stock recipe to database.'});
 			// gets the relation of the trigger
 			var relation = request.trigger.relation;
 			
-			// determines what stock watch method to use
-			if (relation == "stockLT" || relation == "stockGT") {
-				// Runs every hour
-				//var cronJob = cron.job("0 0 */1 * * *", function(){
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					watchStock(idNum);
-				});
-				cronJob.start();
-			} else if (relation == "stockPerInc" || relation == "stockPerDec") {
-				// Runs every hour
-				//var cronJob = cron.job("0 0 */1 * * *", function(){
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					watchStockPercent(idNum);
-				});
-				cronJob.start();
-			} else if (relation == "closePrice") {
-				// Runs every day at 4
-				//var cronJob = cron.job("0 0 4 */1 * *", function(){
-				var cronJob = cron.job("0 */1 * * * *", function(){
-					stockClosing(idNum);
-				});
-				cronJob.start();
-			} else if (relation == "ExchangeReport") {
+			if (relation == "ExchangeReport") {
 				// Runs every minute
 				var cronJob = cron.job("0 */1 * * * *", function(){
 					exReport(idNum);
@@ -93,7 +275,6 @@ app.post('/api/v1/stock/*', function(req, res){
 	})
 });
 
-
 /***********************
 
 WATCH STOCK FUNCTIONS
@@ -102,7 +283,7 @@ WATCH STOCK FUNCTIONS
 
 // For watching if a stock price goes above or below a number
 function watchStock(recipeIDNum){
-	console.log("\n"+recipeIDNum+"\n");
+	//console.log("\n"+recipeIDNum+"\n");
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){

@@ -184,7 +184,7 @@
                 }
             }
         },
-        "/stock/:recipeid": {
+        "/stock/{recipeID}": {
             "delete": {
                 "summary": "Delete a stock trigger",
                 "description": "This endpoint deletes a stock trigger matching the recipeID",
