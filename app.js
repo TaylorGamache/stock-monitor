@@ -30,9 +30,9 @@ app.use(express.static(__dirname + '/public'));
 
 
 app.delete('/api/v1/stock/:recipeid', function(req, res){
-	console.log("stockRecipe delete hit");
+	//console.log("stockRecipe delete hit");
 	var del_ID = req.params.recipeid;
-	console.log(del_ID);
+	//console.log(del_ID);
 	
 	recipesDB.get(del_ID, function(err, data){
 		if(err){
@@ -54,8 +54,10 @@ app.delete('/api/v1/stock/:recipeid', function(req, res){
 
 
 app.post('/api/v1/stock/priceGT', function(req, res){
-	console.log("A recipe for watching if a stock goes above a value has been received.");
+	//console.log("A recipe for watching if a stock goes above a value has been received.");
 	var request = req.body;
+	request.trigger.relation = "stockGT";
+	request.trigger.inThreshold = false;
 	
 	if(request.callbackURL == "") {
 		res.json({success: false, msg: 'No callbackURL submitted.'});
@@ -65,10 +67,6 @@ app.post('/api/v1/stock/priceGT', function(req, res){
 		res.json({success: false, msg: 'No symbol submitted.'});
 	} else if (request.trigger.market == "") {
 		res.json({success: false, msg: 'No market submitted.'});
-	} else if (request.trigger.relation != "stockGT") {
-		res.json({success: false, msg: 'The relation submitted is not stockGT.'});
-	} else if (request.trigger.inThreshold == null) {
-		res.json({success: false, msg: 'No inThreshold submitted.'});
 	} else {
 
 		recipesDB.insert(request, function(err, body, header){
@@ -94,8 +92,10 @@ app.post('/api/v1/stock/priceGT', function(req, res){
 	}
 });
 app.post('/api/v1/stock/priceLT', function(req, res){
-	console.log("A recipe for watching if a stock goes below a value has been received.");
+	//console.log("A recipe for watching if a stock goes below a value has been received.");
 	var request = req.body;
+	request.trigger.relation = "stockLT";
+	request.trigger.inThreshold = false;
 	
 	if(request.callbackURL == "") {
 		res.json({success: false, msg: 'No callbackURL submitted.'});
@@ -105,10 +105,6 @@ app.post('/api/v1/stock/priceLT', function(req, res){
 		res.json({success: false, msg: 'No symbol submitted.'});
 	} else if (request.trigger.market == "") {
 		res.json({success: false, msg: 'No market submitted.'});
-	} else if (request.trigger.relation != "stockLT") {
-		res.json({success: false, msg: 'The relation submitted is not stockLT.'});
-	} else if (request.trigger.inThreshold == null) {
-		res.json({success: false, msg: 'No inThreshold submitted.'});
 	} else {
 
 		recipesDB.insert(request, function(err, body, header){
@@ -134,8 +130,10 @@ app.post('/api/v1/stock/priceLT', function(req, res){
 	}
 });
 app.post('/api/v1/stock/percentInc', function(req, res){
-	console.log("A recipe for watching if a stock's percent increase goes above a value has been received.");
+	//console.log("A recipe for watching if a stock's percent increase goes above a value has been received.");
 	var request = req.body;
+	request.trigger.relation = "stockPerInc";
+	request.trigger.inThreshold = false;
 	
 	if(request.callbackURL == "") {
 		res.json({success: false, msg: 'No callbackURL submitted.'});
@@ -145,10 +143,6 @@ app.post('/api/v1/stock/percentInc', function(req, res){
 		res.json({success: false, msg: 'No symbol submitted.'});
 	} else if (request.trigger.market == "") {
 		res.json({success: false, msg: 'No market submitted.'});
-	} else if (request.trigger.relation != "stockPerInc") {
-		res.json({success: false, msg: 'The relation submitted is not stockPerInc.'});
-	} else if (request.trigger.inThreshold == null) {
-		res.json({success: false, msg: 'No inThreshold submitted.'});
 	} else {
 
 		recipesDB.insert(request, function(err, body, header){
@@ -174,8 +168,10 @@ app.post('/api/v1/stock/percentInc', function(req, res){
 });
 
 app.post('/api/v1/stock/percentDec', function(req, res){
-	console.log("A recipe for watching if a stock's percent increase goes below a value has been received.");
+	//console.log("A recipe for watching if a stock's percent increase goes below a value has been received.");
 	var request = req.body;
+	request.trigger.relation = "stockPerDec";
+	request.trigger.inThreshold = false;
 	
 	if(request.callbackURL == "") {
 		res.json({success: false, msg: 'No callbackURL submitted.'});
@@ -185,10 +181,6 @@ app.post('/api/v1/stock/percentDec', function(req, res){
 		res.json({success: false, msg: 'No symbol submitted.'});
 	} else if (request.trigger.market == "") {
 		res.json({success: false, msg: 'No market submitted.'});
-	} else if (request.trigger.relation != "stockPerDec") {
-		res.json({success: false, msg: 'The relation submitted is not stockPerDec.'});
-	} else if (request.trigger.inThreshold == null) {
-		res.json({success: false, msg: 'No inThreshold submitted.'});
 	} else {
 
 		recipesDB.insert(request, function(err, body, header){
@@ -214,16 +206,16 @@ app.post('/api/v1/stock/percentDec', function(req, res){
 });
 
 app.post('/api/v1/stock/closePrice', function(req, res){
-	console.log("A recipe for watching a stock's closing price has been received.");
+	//console.log("A recipe for watching a stock's closing price has been received.");
 	var request = req.body;
+	request.trigger.relation = "closePrice";
+		
 	if(request.callbackURL == "") {
 		res.json({success: false, msg: 'No callbackURL submitted.'});
 	} else if (request.trigger.symbol == "") {
 		res.json({success: false, msg: 'No symbol submitted.'});
 	} else if (request.trigger.market == "") {
 		res.json({success: false, msg: 'No market submitted.'});
-	} else if (request.trigger.relation != "closePrice") {
-		res.json({success: false, msg: 'The relation submitted is not closePrice.'});
 	} else {
 
 		recipesDB.insert(request, function(err, body, header){
