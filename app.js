@@ -283,8 +283,10 @@ function watchStock(recipeIDNum){
 		}else{
 			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
+			var stockMarket = data.trigger.market;
 			var stockTriggerValue = data.trigger.watchNum;
 			var thresh = data.trigger.inThreshold;
+			var callbackURL = data.callbackURL;
 			requestURL = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol="
 			requestURL += stockSymbol;
 
@@ -309,6 +311,26 @@ function watchStock(recipeIDNum){
 									}
 								});
 								console.log("stock trigger hit!");
+								console.log("callback URL:");
+								console.log(callbackURL);
+
+								var percentChange = stockPrice/stockTriggerValue;
+								var ingredients = {
+									"ingredients_data":{
+										"stock_symbol": stockSymbol,
+										"stock_market": stockMarket,
+										"stock_price": stockPrice,
+										"change_ratio": percentChange
+									}
+
+								}
+								var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+								var headers = {
+									'Content-Type':'application/json',
+									'nsds-api-key' : nsdsApiKey
+								}
+
+								rest.post(callbackURL, {headers: headers, data: JSON.stringify(ingredients)});
 							}
 						} else if(thresh == true) {
 							// if thresh = true than if difference percent is > 7.5 than threshold = false
@@ -367,8 +389,10 @@ function watchStockPercent(recipeIDNum){
 		}else{
 			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
+			var stockMarket = data.trigger.market;
 			var stockTriggerValue = data.trigger.watchNum;
 			var thresh = data.trigger.inThreshold;
+			var callbackURL = data.callbackURL;
 			requestURL = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol="
 			requestURL += stockSymbol;
 
@@ -419,6 +443,22 @@ function watchStockPercent(recipeIDNum){
 									}
 								});
 								console.log("stock trigger hit!");
+								var ingredients = {
+									"ingredients_data":{
+										"stock_symbol": stockSymbol,
+										"stock_market": stockMarket,
+										"stock_trigger_value": stockTriggerValue,
+										"change_percent": changePercent
+									}
+
+								}
+								var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+								var headers = {
+									'Content-Type':'application/json',
+									'nsds-api-key' : nsdsApiKey
+								}
+
+								rest.post(callbackURL, {headers: headers, data: JSON.stringify(ingredients)});
 							}
 						} else if(thresh == true) {
 							// if thresh = true than if difference is > 1.5 than threshold = false
@@ -448,6 +488,7 @@ function stockClosing(recipeIDNum){
 		}else{
 			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
+			var stockMarket = data.trigger.market;
 			requestURL = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol="
 			requestURL += stockSymbol;
 
@@ -460,6 +501,22 @@ function stockClosing(recipeIDNum){
 					if(data.trigger.relation === "closePrice"){
 						console.log(stockSymbol +" stock's closing price: " + closing);
 						console.log("Stock trigger hit!");
+						var ingredients = {
+							"ingredients_data":{
+								"stock_symbol": stockSymbol,
+								"stock_market": stockMarket,
+								"stock_closing_price" : closing
+							}
+
+						}
+						var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+						var headers = {
+							'Content-Type':'application/json',
+							'nsds-api-key' : nsdsApiKey
+						}
+
+						rest.post(callbackURL, {headers: headers, data: JSON.stringify(ingredients)});
+
 					} 
 				}
 			});
