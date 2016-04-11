@@ -9,25 +9,72 @@ var json = require('json');
 var config = new Config('./stock_config.js');
 var me = config.get('CLOUDANT_USERNAME');
 var password = config.get('CLOUDANT_PW');
-var triggerCallback = "http://nsds-api-stage.mybluemix.net/api/v1/trigger/";
 var cron = require('cron');
 
 var app = express();
 
 var cloudant = Cloudant({account:me, password:password});
-
-// lists all the databases on console
-cloudant.db.list(function(err, allDbs){
-	console.log("my dbs: %s", allDbs.join(','))
-});
-
-
 var recipesDB = cloudant.db.use('recipes');
 
 app.use(bodyParser.json());
 // app.use(express.json());
 app.use(express.static(__dirname + '/public'));
 
+		/*************
+
+			INIT
+
+		*************/
+		
+var allDocs = {"selector": { "_id": { "$gt": 0}}};
+recipesDB.find(allDocs ,function(err, result){
+	if (err) {
+		throw err;
+	} 
+	console.log('Found %d JSONs at startup.', result.docs.length);
+	for (var i = 0; i < result.docs.length; i++) {
+		//Finds all recipes and only runs weather recipes
+		var idNum = result.docs[i]._id;
+		var relation = result.docs[i].trigger.relation;
+		if (relation == "stockGT" || relation == "stockLT") {
+			// Runs every hour
+			//var cronJob = cron.job("0 0 */1 * * *", function(){
+			var cronJob = cron.job("0 */1 * * * *", function(){
+				watchStock(idNum);
+			});
+			cronJob.start();
+		} else if (relation == "stockPerInc" || relation == "stockPerDec") {
+			// Runs every hour
+			//var cronJob = cron.job("0 0 */1 * * *", function(){
+			var cronJob = cron.job("0 */1 * * * *", function(){
+				watchStockPercent(idNum);
+			});
+			cronJob.start();
+		} else if (relation == "closePrice") {
+			// Runs every day at 4
+			//var cronJob = cron.job("0 0 4 */1 * *", function(){
+			var cronJob = cron.job("0 */1 * * * *", function(){
+				stockClosing(idNum);
+			});
+			cronJob.start();
+		} 
+	}
+	console.log("The Stock Monitor is Up and Running.");
+});
+
+//temp
+app.post('/temp2/:recipeid', function(req, res){
+	console.log("Callback has been reached.");
+	var rec_ID = req.params.recipeid;
+	console.log(rec_ID);
+	console.log(req.headers);
+	console.log(req.body);
+});
+/***************
+
+DELETE END POINT
+
+****************/
 
 app.delete('/api/v1/stock/:recipeid', function(req, res){
 	//console.log("stockRecipe delete hit");
@@ -296,6 +343,21 @@ function watchStock(recipeIDNum){
 					// var parsedbody = JSON.parse(body);
 					var parsedbody = JSON.parse(body);
 					var stockPrice = parsedbody.LastPrice;
+					var percentChange = parsedbody.ChangePercent;
+					var ingredients = {
+						"ingredients_data":{
+						"stock_symbol": stockSymbol,
+						"stock_market": stockMarket,
+						"stock_price": stockPrice,
+						"change_ratio": percentChange
+						}
+
+					}	
+					var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+					var headers = {
+						'Content-Type':'application/json',
+						'nsds-api-key' : nsdsApiKey
+					}
 
 					if(data.trigger.relation === "stockGT"){
 						console.log("checking if the stock price is GT trigger value");
@@ -311,26 +373,12 @@ function watchStock(recipeIDNum){
 									}
 								});
 								console.log("stock trigger hit!");
-								console.log("callback URL:");
-								console.log(callbackURL);
-
-								var percentChange = stockPrice/stockTriggerValue;
-								var ingredients = {
-									"ingredients_data":{
-										"stock_symbol": stockSymbol,
-										"stock_market": stockMarket,
-										"stock_price": stockPrice,
-										"change_ratio": percentChange
+								callbackURL = callbackURL + "/" + recipeIDNum;
+								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+									if(eRR) {
+										response.json({success: false, msg: 'Failed to reach callback url.'});
 									}
-
-								}
-								var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
-								var headers = {
-									'Content-Type':'application/json',
-									'nsds-api-key' : nsdsApiKey
-								}
-
-								rest.post(callbackURL, {headers: headers, data: JSON.stringify(ingredients)});
+								});
 							}
 						} else if(thresh == true) {
 							// if thresh = true than if difference percent is > 7.5 than threshold = false
@@ -340,7 +388,7 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										response.send("Error adding recipe.");
 									}
 								});
 							} 
@@ -359,6 +407,12 @@ function watchStock(recipeIDNum){
 									}
 								});
 								console.log("stock trigger hit!");
+								callbackURL = callbackURL + "/" + recipeIDNum;
+								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+									if(eRR) {
+										response.json({success: false, msg: 'Failed to reach callback url.'});
+									}
+								});
 							}
 						} else if(thresh == true) {
 							// if thresh = true than if difference percent is > 7.5 than threshold = false
@@ -401,6 +455,20 @@ function watchStockPercent(recipeIDNum){
 					console.log("successful response from stock API!");
 					var parsedbody = JSON.parse(body);
 					var changePercent = parsedbody.ChangePercent;
+					var ingredients = {
+									"ingredients_data":{
+										"stock_symbol": stockSymbol,
+										"stock_market": stockMarket,
+										"stock_trigger_value": stockTriggerValue,
+										"change_percent": changePercent
+									}
+
+								}
+					var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+					var headers = {
+									'Content-Type':'application/json',
+									'nsds-api-key' : nsdsApiKey
+								}
 
 					if(data.trigger.relation === "stockPerInc"){
 						console.log("checking if the percent change is GT trigger value");
@@ -416,6 +484,12 @@ function watchStockPercent(recipeIDNum){
 									}
 								});
 								console.log("stock trigger hit!");
+								callbackURL = callbackURL + "/" + recipeIDNum;
+								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+									if(eRR) {
+										response.json({success: false, msg: 'Failed to reach callback url.'});
+									}
+								});
 							}
 						} else if(thresh == true) {
 							// if thresh = true than if difference is > -1.5 than threshold = false
@@ -443,22 +517,13 @@ function watchStockPercent(recipeIDNum){
 									}
 								});
 								console.log("stock trigger hit!");
-								var ingredients = {
-									"ingredients_data":{
-										"stock_symbol": stockSymbol,
-										"stock_market": stockMarket,
-										"stock_trigger_value": stockTriggerValue,
-										"change_percent": changePercent
+
+								callbackURL = callbackURL + "/" + recipeIDNum;
+								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+									if(eRR) {
+										response.json({success: false, msg: 'Failed to reach callback url.'});
 									}
-
-								}
-								var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
-								var headers = {
-									'Content-Type':'application/json',
-									'nsds-api-key' : nsdsApiKey
-								}
-
-								rest.post(callbackURL, {headers: headers, data: JSON.stringify(ingredients)});
+								});
 							}
 						} else if(thresh == true) {
 							// if thresh = true than if difference is > 1.5 than threshold = false
@@ -515,7 +580,12 @@ function stockClosing(recipeIDNum){
 							'nsds-api-key' : nsdsApiKey
 						}
 
-						rest.post(callbackURL, {headers: headers, data: JSON.stringify(ingredients)});
+						callbackURL = callbackURL + "/" + recipeIDNum;
+						request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+							if(eRR) {
+								response.json({success: false, msg: 'Failed to reach callback url.'});
+							}
+						});
 
 					} 
 				}
