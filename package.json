@@ -1,6 +1,6 @@
 {
-  "name": "weather-monitor",
-  "description": "weather trigger",
+  "name": "stock-monitor",
+  "description": "stock trigger",
   "version": "0.0.1",
   "private": true,
   "scripts": {

@@ -37,26 +37,13 @@ recipesDB.find(allDocs ,function(err, result){
 		var idNum = result.docs[i]._id;
 		var relation = result.docs[i].trigger.relation;
 		if (relation == "stockGT" || relation == "stockLT") {
-			// Runs every hour
-			//var cronJob = cron.job("0 0 */1 * * *", function(){
-			var cronJob = cron.job("0 */1 * * * *", function(){
-				watchStock(idNum);
-			});
-			cronJob.start();
+			watchStock(idNum);
+
 		} else if (relation == "stockPerInc" || relation == "stockPerDec") {
-			// Runs every hour
-			//var cronJob = cron.job("0 0 */1 * * *", function(){
-			var cronJob = cron.job("0 */1 * * * *", function(){
-				watchStockPercent(idNum);
-			});
-			cronJob.start();
+			watchStockPercent(idNum);
+				
 		} else if (relation == "closePrice") {
-			// Runs every day at 4
-			//var cronJob = cron.job("0 0 4 */1 * *", function(){
-			var cronJob = cron.job("0 */1 * * * *", function(){
-				stockClosing(idNum);
-			});
-			cronJob.start();
+			stockClosing(idNum);
 		} 
 	}
 	console.log("The Stock Monitor is Up and Running.");
@@ -99,6 +86,11 @@ app.delete('/api/v1/stock/:recipeid', function(req, res){
 	});
 });
 
+/*************************
+
+STOCK TRIGGER END POINTS
+
+*************************/
 
 app.post('/api/v1/stock/priceGT', function(req, res){
 	//console.log("A recipe for watching if a stock goes above a value has been received.");
@@ -127,12 +119,7 @@ app.post('/api/v1/stock/priceGT', function(req, res){
 			
 				// determines what stock watch method to use
 				if (relation == "stockGT") {
-					// Runs every hour
-					//var cronJob = cron.job("0 0 */1 * * *", function(){
-					var cronJob = cron.job("0 */1 * * * *", function(){
-						watchStock(idNum);
-					});
-					cronJob.start();
+					watchStock(idNum);
 				} 
 			}
 		})
@@ -165,12 +152,7 @@ app.post('/api/v1/stock/priceLT', function(req, res){
 			
 				// determines what stock watch method to use
 				if (relation == "stockLT") {
-					// Runs every hour
-					//var cronJob = cron.job("0 0 */1 * * *", function(){
-					var cronJob = cron.job("0 */1 * * * *", function(){
-						watchStock(idNum);
-					});
-					cronJob.start();
+					watchStock(idNum);
 				} 
 			}
 		})
@@ -202,12 +184,7 @@ app.post('/api/v1/stock/percentInc', function(req, res){
 				var relation = request.trigger.relation;
 			
 				if (relation == "stockPerInc") {
-					// Runs every hour
-					//var cronJob = cron.job("0 0 */1 * * *", function(){
-					var cronJob = cron.job("0 */1 * * * *", function(){
-						watchStockPercent(idNum);
-					});
-					cronJob.start();
+					watchStockPercent(idNum);
 				} 
 			}
 		})
@@ -240,12 +217,7 @@ app.post('/api/v1/stock/percentDec', function(req, res){
 				var relation = request.trigger.relation;
 			
 				if (relation == "stockPerDec") {
-					// Runs every hour
-					//var cronJob = cron.job("0 0 */1 * * *", function(){
-					var cronJob = cron.job("0 */1 * * * *", function(){
-						watchStockPercent(idNum);
-					});
-					cronJob.start();
+					watchStockPercent(idNum);
 				} 
 			}
 		})
@@ -275,12 +247,7 @@ app.post('/api/v1/stock/closePrice', function(req, res){
 				var relation = request.trigger.relation;
 			
 				if (relation == "closePrice") {
-					// Runs every day at 4
-					//var cronJob = cron.job("0 0 4 */1 * *", function(){
-					var cronJob = cron.job("0 */1 * * * *", function(){
 					stockClosing(idNum);
-				});
-					cronJob.start();
 				} 
 			}
 		})
@@ -322,7 +289,9 @@ WATCH STOCK FUNCTIONS
 
 // For watching if a stock price goes above or below a number
 function watchStock(recipeIDNum){
-	//console.log("\n"+recipeIDNum+"\n");
+	// Runs every hour
+	//var cronJob = cron.job("0 0 */1 * * *", function(){
+	var cronJob = cron.job("0 */1 * * * *", function(){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
@@ -432,10 +401,15 @@ function watchStock(recipeIDNum){
 			});
 		}
 	});
+	});
+	cronJob.start();
 }
 
 // For watching if a stock price goes above or below a number
 function watchStockPercent(recipeIDNum){
+	// Runs every hour
+	//var cronJob = cron.job("0 0 */1 * * *", function(){
+	var cronJob = cron.job("0 */1 * * * *", function(){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
@@ -542,10 +516,15 @@ function watchStockPercent(recipeIDNum){
 			});
 		}
 	});
+	});
+	cronJob.start();
 }
 
 // Get closing price of stock
 function stockClosing(recipeIDNum){
+	// Runs every day at 4
+	//var cronJob = cron.job("0 0 4 */1 * *", function(){
+	var cronJob = cron.job("0 */1 * * * *", function(){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
@@ -592,6 +571,8 @@ function stockClosing(recipeIDNum){
 			});
 		}
 	});
+	});
+	cronJob.start();
 }
 
 // vvv  NOT FINISHED!!!!  vvv
