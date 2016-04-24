@@ -6,6 +6,7 @@ var request = require('request');
 var Cloudant = require('cloudant');
 var Config = require('config-js');
 var json = require('json');
+const fs = require('fs');
 var config = new Config('./stock_config.js');
 var me = config.get('CLOUDANT_USERNAME');
 var password = config.get('CLOUDANT_PW');
@@ -29,7 +30,9 @@ app.use(express.static(__dirname + '/public'));
 var allDocs = {"selector": { "_id": { "$gt": 0}}};
 recipesDB.find(allDocs ,function(err, result){
 	if (err) {
-		throw err;
+		fs.appendFile('errorLog.txt', err, function (err) {
+
+		});
 	} 
 	console.log('Found %d JSONs at startup.', result.docs.length);
 	for (var i = 0; i < result.docs.length; i++) {
@@ -295,7 +298,9 @@ function watchStock(recipeIDNum){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			throw err;
+			fs.appendFile('errorLog.txt', err, function (err) {
+
+			});
 		}else{
 			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
@@ -307,7 +312,11 @@ function watchStock(recipeIDNum){
 			requestURL += stockSymbol;
 
 			request(requestURL, function(err, response, body){
-				if(!err){
+				if(err){
+					fs.appendFile('errorLog.txt', err, function (err) {
+
+					});
+				} else {
 					console.log("successful response from stock API!");
 					// var parsedbody = JSON.parse(body);
 					var parsedbody = JSON.parse(body);
@@ -338,14 +347,18 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 								console.log("stock trigger hit!");
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										response.json({success: false, msg: 'Failed to reach callback url.'});
+										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+
+										});
 									}
 								});
 							}
@@ -357,7 +370,9 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										response.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 							} 
@@ -372,14 +387,18 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 								console.log("stock trigger hit!");
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										response.json({success: false, msg: 'Failed to reach callback url.'});
+										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+
+										});
 									}
 								});
 							}
@@ -391,7 +410,9 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 							} 
@@ -413,7 +434,9 @@ function watchStockPercent(recipeIDNum){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			throw err;
+			fs.appendFile('errorLog.txt', err, function (err) {
+
+			});
 		}else{
 			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
@@ -425,7 +448,11 @@ function watchStockPercent(recipeIDNum){
 			requestURL += stockSymbol;
 
 			request(requestURL, function(err, response, body){
-				if(!err){
+				if(err){
+					fs.appendFile('errorLog.txt', err, function (err) {
+
+					});
+				} else {
 					console.log("successful response from stock API!");
 					var parsedbody = JSON.parse(body);
 					var changePercent = parsedbody.ChangePercent;
@@ -454,14 +481,18 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 								console.log("stock trigger hit!");
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										response.json({success: false, msg: 'Failed to reach callback url.'});
+										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+
+										});
 									}
 								});
 							}
@@ -472,7 +503,9 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 							} 
@@ -487,7 +520,9 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 								console.log("stock trigger hit!");
@@ -495,7 +530,9 @@ function watchStockPercent(recipeIDNum){
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										response.json({success: false, msg: 'Failed to reach callback url.'});
+										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+
+										});
 									}
 								});
 							}
@@ -506,7 +543,9 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										res.send("Error adding recipe.");
+										fs.appendFile('errorLog.txt', err, function (err) {
+
+										});
 									}
 								});
 							} 
@@ -528,7 +567,9 @@ function stockClosing(recipeIDNum){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			throw err;
+			fs.appendFile('errorLog.txt', err, function (err) {
+
+			});
 		}else{
 			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
@@ -537,7 +578,11 @@ function stockClosing(recipeIDNum){
 			requestURL += stockSymbol;
 
 			request(requestURL, function(err, response, body){
-				if(!err){
+				if(err){
+					fs.appendFile('errorLog.txt', err, function (err) {
+
+					});
+				} else {
 					console.log("successful response from stock API!");
 					var parsedbody = JSON.parse(body);
 					var closing = parsedbody.LastPrice;
@@ -562,7 +607,9 @@ function stockClosing(recipeIDNum){
 						callbackURL = callbackURL + "/" + recipeIDNum;
 						request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 							if(eRR) {
-								response.json({success: false, msg: 'Failed to reach callback url.'});
+								fs.appendFile('errorLog.txt', eRR, function (eRR) {
+
+								});
 							}
 						});
 
