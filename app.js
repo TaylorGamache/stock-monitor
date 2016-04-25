@@ -29,8 +29,10 @@ app.use(express.static(__dirname + '/public'));
 		
 var allDocs = {"selector": { "_id": { "$gt": 0}}};
 recipesDB.find(allDocs ,function(err, result){
+	var eMsg;
 	if (err) {
-		fs.appendFile('errorLog.txt', err, function (err) {
+		eMsg = "Failed to access the database. \n" + err + "\n"+"\n" ;
+		fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 		});
 	} 
@@ -292,13 +294,15 @@ WATCH STOCK FUNCTIONS
 
 // For watching if a stock price goes above or below a number
 function watchStock(recipeIDNum){
+	var eMsg;
 	// Runs every hour
 	//var cronJob = cron.job("0 0 */1 * * *", function(){
 	var cronJob = cron.job("0 */1 * * * *", function(){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			fs.appendFile('errorLog.txt', err, function (err) {
+			eMsg = "Failed to access the database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+			fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 			});
 		}else{
@@ -313,7 +317,8 @@ function watchStock(recipeIDNum){
 
 			request(requestURL, function(err, response, body){
 				if(err){
-					fs.appendFile('errorLog.txt', err, function (err) {
+					eMsg = "Failed to reach stock API for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+					fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 					});
 				} else {
@@ -347,7 +352,8 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -356,7 +362,8 @@ function watchStock(recipeIDNum){
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
 
 										});
 									}
@@ -370,7 +377,8 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -387,7 +395,8 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -396,7 +405,8 @@ function watchStock(recipeIDNum){
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
 
 										});
 									}
@@ -410,7 +420,8 @@ function watchStock(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -428,13 +439,15 @@ function watchStock(recipeIDNum){
 
 // For watching if a stock price goes above or below a number
 function watchStockPercent(recipeIDNum){
+	var eMsg;
 	// Runs every hour
 	//var cronJob = cron.job("0 0 */1 * * *", function(){
 	var cronJob = cron.job("0 */1 * * * *", function(){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			fs.appendFile('errorLog.txt', err, function (err) {
+			eMsg = "Failed to access the database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+			fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 			});
 		}else{
@@ -449,7 +462,8 @@ function watchStockPercent(recipeIDNum){
 
 			request(requestURL, function(err, response, body){
 				if(err){
-					fs.appendFile('errorLog.txt', err, function (err) {
+					eMsg = "Failed to reach stock API for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+					fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 					});
 				} else {
@@ -481,7 +495,8 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -490,7 +505,8 @@ function watchStockPercent(recipeIDNum){
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
 
 										});
 									}
@@ -503,7 +519,8 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -520,7 +537,8 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = true;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -530,7 +548,8 @@ function watchStockPercent(recipeIDNum){
 								callbackURL = callbackURL + "/" + recipeIDNum;
 								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
-										fs.appendFile('errorLog.txt', eRR, function (eRR) {
+										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
 
 										});
 									}
@@ -543,7 +562,8 @@ function watchStockPercent(recipeIDNum){
 								data.trigger.inThreshold = false;
 								recipesDB.insert(data, recipeIDNum, function(err, body, header){
 									if(err){
-										fs.appendFile('errorLog.txt', err, function (err) {
+										eMsg = "Failed to update database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+										fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 										});
 									}
@@ -561,13 +581,15 @@ function watchStockPercent(recipeIDNum){
 
 // Get closing price of stock
 function stockClosing(recipeIDNum){
+	var eMsg;
 	// Runs every day at 4
 	//var cronJob = cron.job("0 0 4 */1 * *", function(){
 	var cronJob = cron.job("0 */1 * * * *", function(){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			fs.appendFile('errorLog.txt', err, function (err) {
+			eMsg = "Failed to access the database for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+			fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 			});
 		}else{
@@ -579,7 +601,8 @@ function stockClosing(recipeIDNum){
 
 			request(requestURL, function(err, response, body){
 				if(err){
-					fs.appendFile('errorLog.txt', err, function (err) {
+					eMsg = "Failed to reach stock API for recipe _id=" + recipeIDNum + "\n" + err + "\n"+"\n" ;
+					fs.appendFile('errorLog.txt', eMsg, function (err) {
 
 					});
 				} else {
@@ -607,7 +630,8 @@ function stockClosing(recipeIDNum){
 						callbackURL = callbackURL + "/" + recipeIDNum;
 						request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 							if(eRR) {
-								fs.appendFile('errorLog.txt', eRR, function (eRR) {
+								eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
+								fs.appendFile('errorLog.txt', eMsg, function (eRR) {
 
 								});
 							}
@@ -628,7 +652,10 @@ function exReport(recipeIDNum){
 	//get recipe from DB using ID num
 	recipesDB.get(recipeIDNum, function(err, data){
 		if(err){
-			throw err;
+			eMsg = "Failed to access the database for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
+			fs.appendFile('errorLog.txt', eMsg, function (err) {
+				
+			});
 		}else{
 			console.log("watching the exchange rate report");
 			var cur1 = data.trigger.currency1;
