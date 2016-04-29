@@ -10,6 +10,7 @@ const fs = require('fs');
 var config = new Config('./stock_config.js');
 var me = config.get('CLOUDANT_USERNAME');
 var password = config.get('CLOUDANT_PW');
+var nsdsApiKey = config.get('nsdsApiKey');
 var cron = require('cron');
 
 var app = express();
@@ -306,7 +307,6 @@ function watchStock(recipeIDNum){
 
 			});
 		}else{
-			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
 			var stockMarket = data.trigger.market;
 			var stockTriggerValue = data.trigger.watchNum;
@@ -322,12 +322,11 @@ function watchStock(recipeIDNum){
 
 					});
 				} else {
-					console.log("successful response from stock API!");
 					// var parsedbody = JSON.parse(body);
 					var parsedbody = JSON.parse(body);
 					var stockPrice = parsedbody.LastPrice;
 					var percentChange = parsedbody.ChangePercent;
-					var ingredients = {
+					var ingred = {
 						"ingredients_data":{
 						"stock_symbol": stockSymbol,
 						"stock_market": stockMarket,
@@ -336,7 +335,7 @@ function watchStock(recipeIDNum){
 						}
 
 					}	
-					var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+					//var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
 					var headers = {
 						'Content-Type':'application/json',
 						'nsds-api-key' : nsdsApiKey
@@ -360,7 +359,7 @@ function watchStock(recipeIDNum){
 								});
 								console.log("stock trigger hit!");
 								callbackURL = callbackURL + "/" + recipeIDNum;
-								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+								request.post(callbackURL, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
 										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
 										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
@@ -403,7 +402,7 @@ function watchStock(recipeIDNum){
 								});
 								console.log("stock trigger hit!");
 								callbackURL = callbackURL + "/" + recipeIDNum;
-								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+								request.post(callbackURL, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
 										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
 										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
@@ -451,7 +450,6 @@ function watchStockPercent(recipeIDNum){
 
 			});
 		}else{
-			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
 			var stockMarket = data.trigger.market;
 			var stockTriggerValue = data.trigger.watchNum;
@@ -467,10 +465,9 @@ function watchStockPercent(recipeIDNum){
 
 					});
 				} else {
-					console.log("successful response from stock API!");
 					var parsedbody = JSON.parse(body);
 					var changePercent = parsedbody.ChangePercent;
-					var ingredients = {
+					var ingred = {
 									"ingredients_data":{
 										"stock_symbol": stockSymbol,
 										"stock_market": stockMarket,
@@ -479,7 +476,7 @@ function watchStockPercent(recipeIDNum){
 									}
 
 								}
-					var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+					//var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
 					var headers = {
 									'Content-Type':'application/json',
 									'nsds-api-key' : nsdsApiKey
@@ -503,7 +500,7 @@ function watchStockPercent(recipeIDNum){
 								});
 								console.log("stock trigger hit!");
 								callbackURL = callbackURL + "/" + recipeIDNum;
-								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+								request.post(callbackURL, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
 										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
 										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
@@ -546,7 +543,7 @@ function watchStockPercent(recipeIDNum){
 								console.log("stock trigger hit!");
 
 								callbackURL = callbackURL + "/" + recipeIDNum;
-								request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+								request.post(callbackURL, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 									if(eRR) {
 										eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
 										fs.appendFile('errorLog.txt', eMsg, function (eRR) {
@@ -593,9 +590,9 @@ function stockClosing(recipeIDNum){
 
 			});
 		}else{
-			console.log("watching stock");
 			var stockSymbol = data.trigger.symbol;
 			var stockMarket = data.trigger.market;
+			var callbackURL = data.callbackURL;
 			requestURL = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol="
 			requestURL += stockSymbol;
 
@@ -606,14 +603,13 @@ function stockClosing(recipeIDNum){
 
 					});
 				} else {
-					console.log("successful response from stock API!");
 					var parsedbody = JSON.parse(body);
 					var closing = parsedbody.LastPrice;
 
 					if(data.trigger.relation === "closePrice"){
 						console.log(stockSymbol +" stock's closing price: " + closing);
 						console.log("Stock trigger hit!");
-						var ingredients = {
+						var ingred = {
 							"ingredients_data":{
 								"stock_symbol": stockSymbol,
 								"stock_market": stockMarket,
@@ -621,14 +617,14 @@ function stockClosing(recipeIDNum){
 							}
 
 						}
-						var nsdsApiKey = config.get('NSDS_API_KEY_STAGING');
+						//
 						var headers = {
 							'Content-Type':'application/json',
 							'nsds-api-key' : nsdsApiKey
 						}
 
 						callbackURL = callbackURL + "/" + recipeIDNum;
-						request.post(callback, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
+						request.post(callbackURL, { 'headers': headers, 'body': JSON.stringify(ingred)}, function(eRR,httpResponse,body) {
 							if(eRR) {
 								eMsg = "Failed to reach callback URL for recipe _id=" + recipeIDNum + "\n" + eRR + "\n"+"\n" ;
 								fs.appendFile('errorLog.txt', eMsg, function (eRR) {
